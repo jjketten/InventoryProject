@@ -21,6 +21,6 @@ public class Purchase {
     @OneToMany(mappedBy = "purchase")
     private Set<PurchaseItem> purchaseItems;
 
-    @OneToOne(mappedBy = "reminderID.purchase")
+    @OneToOne(mappedBy = "purchase")
     private Reminder reminder;
 }

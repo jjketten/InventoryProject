@@ -12,6 +12,7 @@ import java.util.Set;
 public class Item {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "item_id")
     private Long itemID;
     private String name;
     private String brand;
@@ -27,6 +28,6 @@ public class Item {
     @OneToOne(mappedBy = "item", cascade = CascadeType.ALL)
     private ItemCategory category;
 
-    @OneToOne(mappedBy = "reminderID.item")
+    @OneToOne(mappedBy = "item")
     private Reminder reminder;
 }

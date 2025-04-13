@@ -4,7 +4,8 @@ import lombok.*;
 
 import java.io.Serializable;
 
-@Entity
+//Non-entity
+@Embeddable
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
