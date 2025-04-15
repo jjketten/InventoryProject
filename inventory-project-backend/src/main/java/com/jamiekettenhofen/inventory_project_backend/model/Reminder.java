@@ -2,6 +2,7 @@ package com.jamiekettenhofen.inventory_project_backend.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import java.time.LocalDateTime;
 
 @Entity
 @Data
@@ -15,10 +16,13 @@ public class Reminder {
     private Long purchaseID;
 
     @OneToOne
-    @JoinColumn(name = "purchaseID")
+    @JoinColumn(name = "purchase_ID")
     private Purchase purchase;
 
     @OneToOne
-    @JoinColumn(name = "itemID")
+    @JoinColumn(name = "item_ID")
     private Item item;
+
+    private boolean Completed;
+    private LocalDateTime dateTime;
 }

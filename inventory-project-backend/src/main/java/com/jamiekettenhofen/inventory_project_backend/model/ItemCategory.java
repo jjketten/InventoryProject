@@ -8,16 +8,18 @@ import lombok.*;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Table(name = "item_category")
 public class ItemCategory {
     @Id
+    @Column(name = "item_ID")
     private Long itemID;
 
     @OneToOne
     @MapsId
-    @JoinColumn(name = "itemID")
+    @JoinColumn(name = "item_ID")
     private Item item;
 
     @ManyToOne
-    @JoinColumn(name = "categoryID")
+    @JoinColumn(name = "category_ID")
     private Category category;
 }

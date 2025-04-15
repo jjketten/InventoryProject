@@ -28,6 +28,6 @@ public class Item {
     @OneToOne(mappedBy = "item", cascade = CascadeType.ALL)
     private ItemCategory category;
 
-    @OneToOne(mappedBy = "item")
-    private Reminder reminder;
+    // @OneToOne(mappedBy = "item")
+    // private Reminder reminder;
 }
