@@ -33,12 +33,18 @@ import jakarta.servlet.Filter;
 @EnableTransactionManagement
 public class MultiTenantConfig {
 
-    @Autowired
-    private DataSource dataSource;
+    private final DataSource dataSource;
+    private final TenantProvisioningService tenantProvisioningService;
+
+    public MultiTenantConfig(DataSource dataSource, TenantProvisioningService tenantProvisioningService) {
+        this.dataSource = dataSource;
+        this.tenantProvisioningService = tenantProvisioningService;
+    }
+
 
     @Bean
     public MultiTenantConnectionProvider<String> multiTenantConnectionProvider() {
-        return new DataSourceBasedMultiTenantConnectionProviderImpl(dataSource);
+        return new DataSourceBasedMultiTenantConnectionProviderImpl(dataSource, tenantProvisioningService);
     }
 
     @Bean
