@@ -2,6 +2,7 @@ package com.kitcheninventory.inventory_project_backend.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -9,20 +10,20 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @IdClass(ReminderId.class)
+@Table(name = "reminder")
 public class Reminder {
+
     @Id
+    @Column(name = "item_id")
     private Long itemID;
+
     @Id
+    @Column(name = "purchase_id")
     private Long purchaseID;
 
-    @OneToOne
-    @JoinColumn(name = "purchase_ID")
-    private Purchase purchase;
+    @Column(name = "completed")
+    private boolean completed;
 
-    @OneToOne
-    @JoinColumn(name = "item_ID")
-    private Item item;
-
-    private boolean Completed;
+    @Column(name = "date_time")
     private LocalDateTime dateTime;
 }

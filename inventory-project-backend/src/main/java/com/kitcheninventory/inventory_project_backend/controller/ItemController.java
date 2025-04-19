@@ -19,31 +19,34 @@ public class ItemController {
         this.itemService = itemService;
     }
 
+    @PostMapping
+    public ResponseEntity<ItemDTO> createItem(@RequestBody ItemDTO itemDTO) {
+        ItemDTO created = itemService.createItem(itemDTO);
+        return ResponseEntity.ok(created);
+    }
+
     @GetMapping
     public ResponseEntity<List<ItemDTO>> getAllItems() {
-        return ResponseEntity.ok(itemService.getAllItems());
+        List<ItemDTO> items = itemService.getAllItems();
+        return ResponseEntity.ok(items);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<ItemDTO> getItemById(@PathVariable Long id) {
         return itemService.getItemById(id)
-            .map(ResponseEntity::ok)
-            .orElse(ResponseEntity.notFound().build());
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
-    
-    @PostMapping
-    public ResponseEntity<ItemDTO> createItem(@RequestBody ItemDTO itemDTO) {
-        return ResponseEntity.ok(itemService.createItem(itemDTO));
-    }
-
-    // @PutMapping("/{id}")
-    // public ResponseEntity<ItemDTO> updateItem(@PathVariable Long id, @RequestBody ItemDTO itemDTO) {
-    //     return ResponseEntity.ok(itemService.updateItem(id, itemDTO));
-    // }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteItem(@PathVariable Long id) {
         itemService.deleteItem(id);
         return ResponseEntity.noContent().build();
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ItemDTO> updateItem(@PathVariable Long id, @RequestBody ItemDTO itemDTO) {
+        return ResponseEntity.ok(itemService.updateItem(id, itemDTO));
+    }
+
 }

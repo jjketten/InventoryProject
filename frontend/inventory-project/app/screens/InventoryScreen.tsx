@@ -7,6 +7,10 @@ import { Item } from '../../types/item';
 const InventoryScreen: React.FC = () => {
   const [localItems, setLocalItems] = useState<Item[]>([]);
   const [serverItems, setServerItems] = useState<Item[]>([]);
+  const headers = {
+    'X-Tenant-ID' : 'test_schema2',
+    'Content-Type' : 'application/json'
+  }
 
   useEffect(() => {
     fetchServerItems();
@@ -16,13 +20,11 @@ const InventoryScreen: React.FC = () => {
     try {
       const response = await fetch('http://127.0.0.1:9000/api/items', {
         method: 'GET',
-        headers: {
-            'X-Tenant-ID' : 'test_schema1',
-            'Content-Type' : 'application/json'
-        }
+        headers: headers
       }); //should not hardcode this
       const data: Item[] = await response.json();
       setServerItems(data);
+      console.log('Items fetched: ', JSON.stringify(data))
     } catch (error) {
       console.error('Failed to fetch server items:', error);
     }
@@ -35,24 +37,21 @@ const InventoryScreen: React.FC = () => {
   };
 
   const handleAddRow = () => {
-    setLocalItems([...localItems, { name: '', brand: '', unit: '', amount: 0 }]);
+    setLocalItems([...localItems, { name: '', brand: '', unit: '', amount: 0, categories: [] }]);
   };
 
   const handleSubmit = async () => {
-    const serverHash = new Set(serverItems.map(i => JSON.stringify({ name: i.name, brand: i.brand, unit: i.unit, amount: i.amount })));
+    const serverHash = new Set(serverItems.map(i => JSON.stringify({ name: i.name, brand: i.brand, unit: i.unit, amount: i.amount, categories: i.categories })));
 
     const newItems = localItems.filter(
-      (item) => !serverHash.has(JSON.stringify({ name: item.name, brand: item.brand, unit: item.unit, amount: item.amount }))
+      (item) => !serverHash.has(JSON.stringify({ name: item.name, brand: item.brand, unit: item.unit, amount: item.amount, categories: item.categories }))
     );
 
     for (const item of newItems) {
       try {
         const response = await fetch('http://127.0.0.1:9000/api/items', { //again, should not hardcode this
           method: 'POST',
-          headers: { 
-            'X-Tenant-ID' : 'test_schema1',
-            'Content-Type' : 'application/json'
-           },
+          headers: headers,
           body: JSON.stringify(item),
         });
 

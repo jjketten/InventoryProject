@@ -1,58 +1,53 @@
 package com.kitcheninventory.inventory_project_backend.service;
 
-
 import com.kitcheninventory.inventory_project_backend.dto.ItemDTO;
 import com.kitcheninventory.inventory_project_backend.model.Item;
-import com.kitcheninventory.inventory_project_backend.repository.ItemRepository;
+import com.kitcheninventory.inventory_project_backend.repository.ItemNativeRepository;
+
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
+@RequiredArgsConstructor
 public class ItemService {
 
-    private final ItemRepository itemRepository;
+    private final ItemNativeRepository itemNativeRepository;
 
-    public ItemService(ItemRepository itemRepository) {
-        this.itemRepository = itemRepository;
+    public ItemDTO createItem(ItemDTO dto) {
+        return itemNativeRepository.saveItemWithCategories(dto);
     }
 
     public List<ItemDTO> getAllItems() {
-        return itemRepository.findAll().stream()
-                .map(item -> new ItemDTO(
-                        item.getItemID(),
-                        item.getName(),
-                        item.getBrand(),
-                        item.getUnit(),
-                        item.getAmount()
-                ))
-                .toList();
+        return itemNativeRepository.getAllItemsWithCategories();
     }
 
     public Optional<ItemDTO> getItemById(Long id) {
-        return itemRepository.findById(id)
-                .map(item -> new ItemDTO(
-                        item.getItemID(),
-                        item.getName(),
-                        item.getBrand(),
-                        item.getUnit(),
-                        item.getAmount()
-                ));
-    }
-
-    public ItemDTO createItem(ItemDTO dto) {
-        Item item = new Item();
-        item.setName(dto.name());
-        item.setBrand(dto.brand());
-        item.setUnit(dto.unit());
-        item.setAmount(dto.amount());
-
-        Item saved = itemRepository.save(item);
-        return new ItemDTO(saved.getItemID(), saved.getName(), saved.getBrand(), saved.getUnit(), saved.getAmount());
+        return itemNativeRepository.getItemWithCategoriesById(id);
     }
 
     public void deleteItem(Long id) {
-        itemRepository.deleteById(id);
+        itemNativeRepository.deleteItemAndAssociations(id);
     }
-} 
+
+    @Transactional
+    public ItemDTO updateItem(Long id, ItemDTO dto) {
+        Optional<ItemDTO> existing = itemNativeRepository.findItemById(id);
+        if (existing.isEmpty()) {
+            throw new EntityNotFoundException("Item not found with ID: " + id);
+        }
+
+        itemNativeRepository.updateItem(id, dto.name(), dto.brand(), dto.unit(), dto.amount());
+
+        if (dto.categories() != null) {
+            itemNativeRepository.clearItemCategories(id); // deletes from item_category
+            itemNativeRepository.addItemCategoriesByName(id, dto.categories());
+        }
+
+        return getItemById(id).orElseThrow(); // get updated version
+    }
+
+}

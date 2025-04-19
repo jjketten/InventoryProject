@@ -1,41 +1,41 @@
 package com.kitcheninventory.inventory_project_backend.service;
 
 import com.kitcheninventory.inventory_project_backend.dto.CategoryDTO;
-import com.kitcheninventory.inventory_project_backend.model.Category;
-import com.kitcheninventory.inventory_project_backend.repository.CategoryRepository;
+import com.kitcheninventory.inventory_project_backend.repository.CategoryNativeRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class CategoryService {
 
-    private final CategoryRepository categoryRepository;
+    private final CategoryNativeRepository categoryRepository;
 
-    public CategoryService(CategoryRepository categoryRepository) {
+    public CategoryService(CategoryNativeRepository categoryRepository) {
         this.categoryRepository = categoryRepository;
     }
 
     public List<CategoryDTO> getAllCategories() {
-        return categoryRepository.findAll().stream()
-                .map(category -> new CategoryDTO(category.getCategoryID(), category.getName()))
-                .toList();
+        return categoryRepository.findAllCategories();
     }
 
-    public Optional<CategoryDTO> getCategoryById(Long id) {
-        return categoryRepository.findById(id)
-                .map(category -> new CategoryDTO(category.getCategoryID(), category.getName()));
+    public CategoryDTO getCategoryById(Long id) {
+        return categoryRepository.findCategoryById(id);
     }
 
-    public CategoryDTO createCategory(CategoryDTO dto) {
-        Category category = new Category();
-        category.setName(dto.name());
-        Category saved = categoryRepository.save(category);
-        return new CategoryDTO(saved.getCategoryID(), saved.getName());
+    public CategoryDTO createCategory(String name) {
+        return categoryRepository.createCategory(name);
+    }
+
+    public void renameCategory(Long id, String newName) {
+        categoryRepository.renameCategory(id, newName);
     }
 
     public void deleteCategory(Long id) {
-        categoryRepository.deleteById(id);
+        categoryRepository.deleteCategory(id);
     }
-} 
+
+    public void addItemToCategory(Long categoryId, Long itemId) {
+        categoryRepository.addItemToCategory(categoryId, itemId);
+    }
+}

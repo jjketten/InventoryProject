@@ -7,23 +7,28 @@ import lombok.*;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Table(name = "recipe_item")
 @IdClass(RecipeItemId.class)
 public class RecipeItem {
+
     @Id
     private Long recipeID;
+
     @Id
     private Long itemID;
 
+    private String unit;
+    private int amount;
+
     @ManyToOne
-    @MapsId("recipeID")
-    @JoinColumn(name = "recipeID")
+    @JoinColumn(name = "recipeID", insertable = false, updatable = false)
     private Recipe recipe;
 
     @ManyToOne
-    @MapsId("itemID")
-    @JoinColumn(name = "itemID")
+    @JoinColumn(name = "itemID", insertable = false, updatable = false)
     private Item item;
 
-    private String unit;
-    private int amount;
+    @ManyToOne
+    @JoinColumn(name = "category_id")
+    private Category category;
 }

@@ -17,32 +17,47 @@ public class CategoryController {
         this.categoryService = categoryService;
     }
 
+    // Get all categories
     @GetMapping
     public ResponseEntity<List<CategoryDTO>> getAllCategories() {
         return ResponseEntity.ok(categoryService.getAllCategories());
     }
 
+    // Get category by ID
     @GetMapping("/{id}")
     public ResponseEntity<CategoryDTO> getCategoryById(@PathVariable Long id) {
-        // return ResponseEntity.ok(categoryService.getCategoryById(id));
-        return categoryService.getCategoryById(id)
-        .map(ResponseEntity::ok)
-        .orElse(ResponseEntity.notFound().build());
+        CategoryDTO category = categoryService.getCategoryById(id);
+        if (category == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(category);
     }
 
+    // Create a new category
     @PostMapping
     public ResponseEntity<CategoryDTO> createCategory(@RequestBody CategoryDTO categoryDTO) {
-        return ResponseEntity.ok(categoryService.createCategory(categoryDTO));
+        CategoryDTO created = categoryService.createCategory(categoryDTO.name());
+        return ResponseEntity.ok(created);
     }
 
-    // @PutMapping("/{id}")
-    // public ResponseEntity<CategoryDTO> updateCategory(@PathVariable Long id, @RequestBody CategoryDTO categoryDTO) {
-    //     return ResponseEntity.ok(categoryService.updateCategory(id, categoryDTO));
-    // }
+    // Rename an existing category
+    @PutMapping("/{id}/rename")
+    public ResponseEntity<Void> renameCategory(@PathVariable Long id, @RequestBody String newName) {
+        categoryService.renameCategory(id, newName);
+        return ResponseEntity.ok().build();
+    }
 
+    // Delete a category
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteCategory(@PathVariable Long id) {
         categoryService.deleteCategory(id);
         return ResponseEntity.noContent().build();
+    }
+
+    // Add item to category
+    @PostMapping("/{categoryId}/items/{itemId}")
+    public ResponseEntity<Void> addItemToCategory(@PathVariable Long categoryId, @PathVariable Long itemId) {
+        categoryService.addItemToCategory(categoryId, itemId);
+        return ResponseEntity.ok().build();
     }
 }

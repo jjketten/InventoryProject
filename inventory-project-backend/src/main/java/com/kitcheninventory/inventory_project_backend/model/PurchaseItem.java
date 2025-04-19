@@ -3,31 +3,33 @@ package com.kitcheninventory.inventory_project_backend.model;
 import jakarta.persistence.*;
 import lombok.*;
 
-/*
- * "Has" relationship
- */
 @Entity
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Table(name = "purchase_item") //Has(PurchaseID,ItemID,Unit,Amount,Price)
 @IdClass(PurchaseItemId.class)
 public class PurchaseItem {
+
     @Id
-    private Long purchaseID;
-    @Id
+    @Column(name = "itemID")
     private Long itemID;
 
-    @ManyToOne
-    @MapsId("purchaseID")
-    @JoinColumn(name = "purchaseID")
-    private Purchase purchase;
-
-    @ManyToOne
-    @MapsId("itemID")
-    @JoinColumn(name = "itemID")
-    private Item item;
+    @Id
+    @Column(name = "purchaseID")
+    private Long purchaseID;
 
     private String unit;
+
     private int amount;
+
     private double price;
+
+    @ManyToOne
+    @JoinColumn(name = "itemID", insertable = false, updatable = false)
+    private Item item;
+
+    @ManyToOne
+    @JoinColumn(name = "purchaseID", insertable = false, updatable = false)
+    private Purchase purchase;
 }

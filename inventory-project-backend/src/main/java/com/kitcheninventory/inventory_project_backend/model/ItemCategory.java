@@ -8,7 +8,7 @@ import lombok.*;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "item_category")
+@Table(name = "item_category") //TypeOf(ItemID,CategoryID)
 public class ItemCategory {
     @Id
     @Column(name = "item_ID")
