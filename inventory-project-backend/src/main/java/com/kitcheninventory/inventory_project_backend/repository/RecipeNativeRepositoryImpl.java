@@ -6,7 +6,10 @@ import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Repository;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Repository
@@ -62,23 +65,108 @@ public class RecipeNativeRepositoryImpl implements RecipeNativeRepository {
 
     @Override
     public List<RecipeDTO> getAllRecipes() {
-        return entityManager.createNativeQuery("SELECT * FROM full_recipe_view", "RecipeDTOMapping")
-            .getResultList();
+        List<Object[]> results = entityManager.createNativeQuery("""
+            SELECT 
+                r.recipeid, r.name, r.reference,
+                ri.itemid, ri.unit, ri.amount, ri.categoryid,
+                rs.stepnumber, rs.content,
+                c.name AS category_name
+            FROM recipe r
+            LEFT JOIN recipe_item ri ON r.recipeid = ri.recipeid
+            LEFT JOIN recipe_step rs ON r.recipeid = rs.recipeid
+            LEFT JOIN category c ON ri.categoryid = c.categoryid
+            ORDER BY r.recipeid, rs.stepnumber
+        """).getResultList();
+
+        Map<Long, RecipeDTO> recipeMap = new LinkedHashMap<>();
+
+        for (Object[] row : results) {
+            Long recipeID = ((Number) row[0]).longValue();
+
+            RecipeDTO dto = recipeMap.computeIfAbsent(recipeID, id -> new RecipeDTO(
+                recipeID,
+                (String) row[1],
+                (String) row[2],
+                new ArrayList<>(),
+                new ArrayList<>()
+            ));
+
+            if (row[3] != null) {
+                dto.items().add(new RecipeItemDTO(
+                    ((Number) row[3]).longValue(),
+                    (String) row[4],
+                    ((Number) row[5]).intValue(),
+                    ((Number) row[6]).longValue(),
+                    (String) row[9]
+                ));
+            }
+
+            if (row[7] != null) {
+                dto.steps().add(new RecipeStepDTO(
+                    ((Number) row[7]).intValue(),
+                    (String) row[8]
+                ));
+            }
+        }
+
+        return new ArrayList<>(recipeMap.values());
     }
+
+
 
     @Override
     public Optional<RecipeDTO> getRecipeById(Long id) {
-        try {
-            RecipeDTO result = (RecipeDTO) entityManager.createNativeQuery("""
-                SELECT * FROM full_recipe_view WHERE recipeid = :id
-            """, "RecipeDTOMapping")
-            .setParameter("id", id)
-            .getSingleResult();
-            return Optional.of(result);
-        } catch (jakarta.persistence.NoResultException e) {
+        List<Object[]> results = entityManager.createNativeQuery("""
+            SELECT 
+                r.recipeid, r.name, r.reference,
+                ri.itemid, ri.unit, ri.amount, ri.categoryid,
+                rs.stepnumber, rs.content,
+                c.name AS category_name
+            FROM recipe r
+            LEFT JOIN recipe_item ri ON r.recipeid = ri.recipeid
+            LEFT JOIN recipe_step rs ON r.recipeid = rs.recipeid
+            LEFT JOIN category c ON ri.categoryid = c.categoryid
+            WHERE r.recipeid = :id
+            ORDER BY rs.stepnumber
+        """)
+        .setParameter("id", id)
+        .getResultList();
+
+        if (results.isEmpty()) {
             return Optional.empty();
         }
+
+        Object[] firstRow = results.get(0);
+        RecipeDTO dto = new RecipeDTO(
+            ((Number) firstRow[0]).longValue(),
+            (String) firstRow[1],
+            (String) firstRow[2],
+            new ArrayList<>(),
+            new ArrayList<>()
+        );
+
+        for (Object[] row : results) {
+            if (row[3] != null) {
+                dto.items().add(new RecipeItemDTO(
+                    ((Number) row[3]).longValue(),
+                    (String) row[4],
+                    ((Number) row[5]).intValue(),
+                    ((Number) row[6]).longValue(),
+                    (String) row[9]
+                ));
+            }
+
+            if (row[7] != null) {
+                dto.steps().add(new RecipeStepDTO(
+                    ((Number) row[7]).intValue(),
+                    (String) row[8]
+                ));
+            }
+        }
+
+        return Optional.of(dto);
     }
+
     
 
     @Override
