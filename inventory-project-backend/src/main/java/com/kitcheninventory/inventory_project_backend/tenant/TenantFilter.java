@@ -25,7 +25,7 @@ public class TenantFilter extends OncePerRequestFilter {
             if (tenantId != null && !tenantId.isBlank()) {
                 TenantContext.setCurrentTenant(tenantId);
             }
-
+            System.out.println("[TenantFilter] New request with Tenant ID: " + TenantContext.getCurrentTenant());
             // continue the request
             filterChain.doFilter(request, response);
         } finally {

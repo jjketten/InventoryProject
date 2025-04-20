@@ -47,7 +47,7 @@ public class TenantProvisioningService {
                 throw new RuntimeException("Failed to create schema for tenant: " + tenantId, e);
             }
         } else {
-            System.out.println("Schema " + tenantId + " already exists.");
+            System.out.println("[TenantProvisioningService] Schema " + tenantId + " exists.");
         }
     }
 

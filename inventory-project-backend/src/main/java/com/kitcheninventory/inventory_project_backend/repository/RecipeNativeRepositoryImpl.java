@@ -30,18 +30,18 @@ public class RecipeNativeRepositoryImpl implements RecipeNativeRepository {
         .setParameter("reference", dto.reference())
         .executeUpdate();
 
-        // Retrieve generated RecipeID
-        Long recipeID = ((Number) entityManager
-            .createNativeQuery("SELECT currval(pg_get_serial_sequence('recipe','recipeid'))")
+        // Retrieve generated Recipe_ID
+        Long recipe_ID = ((Number) entityManager
+            .createNativeQuery("SELECT currval(pg_get_serial_sequence('recipe','recipe_id'))")
             .getSingleResult()).longValue();
 
         // Insert recipe items
         for (RecipeItemDTO item : dto.items()) {
             entityManager.createNativeQuery("""
-                INSERT INTO recipe_item (recipeid, itemid, unit, amount, categoryid)
-                VALUES (:recipeID, :itemID, :unit, :amount, :categoryID)
+                INSERT INTO recipe_item (recipe_id, itemid, unit, amount, categoryid)
+                VALUES (:recipe_ID, :itemID, :unit, :amount, :categoryID)
             """)
-            .setParameter("recipeID", recipeID)
+            .setParameter("recipe_ID", recipe_ID)
             .setParameter("itemID", item.itemID())
             .setParameter("unit", item.unit())
             .setParameter("amount", item.amount())
@@ -52,39 +52,39 @@ public class RecipeNativeRepositoryImpl implements RecipeNativeRepository {
         // Insert steps
         for (RecipeStepDTO step : dto.steps()) {
             entityManager.createNativeQuery("""
-                INSERT INTO recipe_step (recipeid, stepnumber, content)
-                VALUES (:recipeID, :stepNumber, :content)
+                INSERT INTO recipe_step (recipe_id, stepnumber, content)
+                VALUES (:recipe_ID, :stepNumber, :content)
             """)
-            .setParameter("recipeID", recipeID)
+            .setParameter("recipe_ID", recipe_ID)
             .setParameter("stepNumber", step.stepNumber())
             .setParameter("content", step.content())
             .executeUpdate();
         }
-        return recipeID;
+        return recipe_ID;
     }
 
     @Override
     public List<RecipeDTO> getAllRecipes() {
         List<Object[]> results = entityManager.createNativeQuery("""
             SELECT 
-                r.recipeid, r.name, r.reference,
+                r.recipe_id, r.name, r.reference,
                 ri.itemid, ri.unit, ri.amount, ri.categoryid,
                 rs.stepnumber, rs.content,
                 c.name AS category_name
             FROM recipe r
-            LEFT JOIN recipe_item ri ON r.recipeid = ri.recipeid
-            LEFT JOIN recipe_step rs ON r.recipeid = rs.recipeid
+            LEFT JOIN recipe_item ri ON r.recipe_id = ri.recipe_id
+            LEFT JOIN recipe_step rs ON r.recipe_id = rs.recipe_id
             LEFT JOIN category c ON ri.categoryid = c.categoryid
-            ORDER BY r.recipeid, rs.stepnumber
+            ORDER BY r.recipe_id, rs.stepnumber
         """).getResultList();
 
         Map<Long, RecipeDTO> recipeMap = new LinkedHashMap<>();
 
         for (Object[] row : results) {
-            Long recipeID = ((Number) row[0]).longValue();
+            Long recipe_ID = ((Number) row[0]).longValue();
 
-            RecipeDTO dto = recipeMap.computeIfAbsent(recipeID, id -> new RecipeDTO(
-                recipeID,
+            RecipeDTO dto = recipeMap.computeIfAbsent(recipe_ID, id -> new RecipeDTO(
+                recipe_ID,
                 (String) row[1],
                 (String) row[2],
                 new ArrayList<>(),
@@ -118,15 +118,15 @@ public class RecipeNativeRepositoryImpl implements RecipeNativeRepository {
     public Optional<RecipeDTO> getRecipeById(Long id) {
         List<Object[]> results = entityManager.createNativeQuery("""
             SELECT 
-                r.recipeid, r.name, r.reference,
+                r.recipe_id, r.name, r.reference,
                 ri.itemid, ri.unit, ri.amount, ri.categoryid,
                 rs.stepnumber, rs.content,
                 c.name AS category_name
             FROM recipe r
-            LEFT JOIN recipe_item ri ON r.recipeid = ri.recipeid
-            LEFT JOIN recipe_step rs ON r.recipeid = rs.recipeid
+            LEFT JOIN recipe_item ri ON r.recipe_id = ri.recipe_id
+            LEFT JOIN recipe_step rs ON r.recipe_id = rs.recipe_id
             LEFT JOIN category c ON ri.categoryid = c.categoryid
-            WHERE r.recipeid = :id
+            WHERE r.recipe_id = :id
             ORDER BY rs.stepnumber
         """)
         .setParameter("id", id)
@@ -172,15 +172,15 @@ public class RecipeNativeRepositoryImpl implements RecipeNativeRepository {
     @Override
     @Transactional
     public void deleteRecipe(Long id) {
-        entityManager.createNativeQuery("DELETE FROM recipe_step WHERE recipeid = :id")
+        entityManager.createNativeQuery("DELETE FROM recipe_step WHERE recipe_id = :id")
             .setParameter("id", id)
             .executeUpdate();
 
-        entityManager.createNativeQuery("DELETE FROM recipe_item WHERE recipeid = :id")
+        entityManager.createNativeQuery("DELETE FROM recipe_item WHERE recipe_id = :id")
             .setParameter("id", id)
             .executeUpdate();
 
-        entityManager.createNativeQuery("DELETE FROM recipe WHERE recipeid = :id")
+        entityManager.createNativeQuery("DELETE FROM recipe WHERE recipe_id = :id")
             .setParameter("id", id)
             .executeUpdate();
     }
@@ -193,7 +193,7 @@ public class RecipeNativeRepositoryImpl implements RecipeNativeRepository {
         entityManager.createNativeQuery("""
             UPDATE recipe
             SET name = :name, reference = :reference
-            WHERE recipeid = :id
+            WHERE recipe_id = :id
         """)
         .setParameter("name", dto.name())
         .setParameter("reference", dto.reference())
@@ -211,10 +211,10 @@ public class RecipeNativeRepositoryImpl implements RecipeNativeRepository {
         //insert items and then steps separately
         for (RecipeItemDTO item : dto.items()) {
             entityManager.createNativeQuery("""
-                INSERT INTO recipe_item (recipeid, itemid, unit, amount, categoryid)
-                VALUES (:recipeID, :itemID, :unit, :amount, :categoryID)
+                INSERT INTO recipe_item (recipe_id, itemid, unit, amount, categoryid)
+                VALUES (:recipe_ID, :itemID, :unit, :amount, :categoryID)
             """)
-            .setParameter("recipeID", dto.recipeID())
+            .setParameter("recipe_ID", dto.recipeID())
             .setParameter("itemID", item.itemID())
             .setParameter("unit", item.unit())
             .setParameter("amount", item.amount())
@@ -224,10 +224,10 @@ public class RecipeNativeRepositoryImpl implements RecipeNativeRepository {
 
         for (RecipeStepDTO step : dto.steps()) {
             entityManager.createNativeQuery("""
-                INSERT INTO recipe_step (recipeid, stepnumber, content)
-                VALUES (:recipeID, :stepNumber, :content)
+                INSERT INTO recipe_step (recipe_id, stepnumber, content)
+                VALUES (:recipe_ID, :stepNumber, :content)
             """)
-            .setParameter("recipeID", dto.recipeID())
+            .setParameter("recipe_ID", dto.recipeID())
             .setParameter("stepNumber", step.stepNumber())
             .setParameter("content", step.content())
             .executeUpdate();

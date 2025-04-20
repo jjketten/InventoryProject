@@ -31,7 +31,7 @@ public class SchemaGenerator {
              Statement statement = connection.createStatement()) {
 
             statement.execute("CREATE SCHEMA IF NOT EXISTS " + schemaName);
-            System.out.println("[SchemaGenerator] Ensured schema exists: " + schemaName);
+            System.out.println("[SchemaGenerator] Ensured schema created or exists: " + schemaName);
 
         } catch (Exception e) {
             throw new RuntimeException("[SchemaGenerator] Failed to ensure schema exists", e);
