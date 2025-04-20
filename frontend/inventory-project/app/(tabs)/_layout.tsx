@@ -8,38 +8,59 @@ import TabBarBackground from '@/components/ui/TabBarBackground';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 
+import {
+  Provider as PaperProvider,
+  MD3DarkTheme as PaperDarkTheme,
+  MD3LightTheme as PaperLightTheme,
+} from 'react-native-paper';
+
+import { useTheme } from 'react-native-paper';
+
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
+  // const colorScheme = useColorScheme();
+  const paperTheme = PaperDarkTheme; // or useColorScheme logic here
+  const { colors } = useTheme(); // from react-native-paper
 
   return (
-    <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-        headerShown: false,
-        tabBarButton: HapticTab,
-        tabBarBackground: TabBarBackground,
-        tabBarStyle: Platform.select({
-          ios: {
-            // Use a transparent background on iOS to show the blur effect
-            position: 'absolute',
-          },
-          default: {},
-        }),
-      }}>
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="explore"
-        options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
-        }}
-      />
-    </Tabs>
+    <PaperProvider theme={paperTheme}>
+      <Tabs
+        screenOptions={{
+            tabBarStyle: {
+              backgroundColor: colors.surface,        // Tab bar background
+            },
+            tabBarActiveTintColor: colors.primary,    // Active tab icon color
+            tabBarInactiveTintColor: colors.outline,  // Inactive tab icon color
+            headerStyle: {
+              backgroundColor: colors.background,     // Header background
+            },
+            headerTintColor: colors.onBackground,     // Header text/icons
+            tabBarLabelStyle: {
+              color: colors.onSurface,                // Optional: label text color
+            },
+          }}
+        >
+        <Tabs.Screen
+          name="index"
+          options={{
+            title: 'Home',
+            tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+          }}
+        />
+        <Tabs.Screen
+          name="explore"
+          options={{
+            title: 'Explore',
+            tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+          }}
+        />
+        <Tabs.Screen
+          name="InventoryTab"
+          options={{
+            title: 'Manage Inventory',
+            tabBarIcon: ({ color }) => <IconSymbol size={28} name="checklist.checked" color={color} />,
+          }}
+        />
+      </Tabs>
+    </PaperProvider>
   );
 }

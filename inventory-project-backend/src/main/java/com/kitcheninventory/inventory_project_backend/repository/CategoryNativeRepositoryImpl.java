@@ -77,11 +77,21 @@ public class CategoryNativeRepositoryImpl implements CategoryNativeRepository {
 
     @Override
     public void addItemToCategory(Long categoryId, Long itemId) {
-        em.createNativeQuery("INSERT INTO item_category (item_id, category_id) VALUES (:itemId, :categoryId) ON CONFLICT DO NOTHING")
+        try {
+            em.createNativeQuery("""
+                    INSERT INTO item_category (item_id, category_id)
+                    VALUES (:itemId, :categoryId)
+                """)//     ON CONFLICT DO NOTHING
+                // """)
                 .setParameter("itemId", itemId)
                 .setParameter("categoryId", categoryId)
                 .executeUpdate();
+        } catch (Exception e) {
+            System.err.println("Error inserting into item_category (itemID=" + itemId + ", categoryID=" + categoryId + "): " + e.getMessage());
+            e.printStackTrace(); 
+        }
     }
+    
 
     @Override
     public List<Long> getItemIdsForCategory(Long categoryId) {

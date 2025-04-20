@@ -1,18 +1,34 @@
-// InventoryTab.tsx
-
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import InventoryScreen from '../screens/InventoryScreen'; // replace with your actual screen
+import InventoryScreen from '../screens/InventoryScreen';
 import CameraScreen from '../screens/CameraScreen';
-import { InventoryTabParamList } from '../types'; // adjust path if needed
+import { InventoryTabParamList } from '../types';
+
+import { useTheme } from 'react-native-paper';
+import CategoryScreen from '../screens/CategoryScreen';
 
 const Tab = createBottomTabNavigator<InventoryTabParamList>();
 
 const InventoryTab: React.FC = () => {
+  const { colors } = useTheme(); // ✅ Call hook inside the component
+
   return (
-    <Tab.Navigator>
-      <Tab.Screen name="Inventory" component={InventoryScreen} />
-      <Tab.Screen name="Camera" component={CameraScreen} />
+    <Tab.Navigator
+      screenOptions={{
+        tabBarStyle: {
+          backgroundColor: colors.elevation.level2,
+        },
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.onSurfaceVariant,
+        headerStyle: {
+          backgroundColor: colors.background,
+        },
+        headerTintColor: colors.onBackground,
+      }}
+    >
+      <Tab.Screen name="Current Inventory" component={InventoryScreen} />
+      <Tab.Screen name="Add Receipt" component={CameraScreen} />
+      <Tab.Screen name="Category" component={CategoryScreen} />
     </Tab.Navigator>
   );
 };

@@ -1,16 +1,43 @@
-// screens/InventoryScreen.tsx
 import React, { useEffect, useState } from 'react';
-import { View, Button, Text, ScrollView } from 'react-native';
+import { View, Button, ScrollView } from 'react-native';
+import { useTheme } from 'react-native-paper';
 import GenericTable from '../../components/GenericTable';
+import { ColumnConfig } from '../../components/ColumnConfig';
 import { Item } from '../../types/item';
+import { useFocusEffect } from '@react-navigation/native';
+import { useCallback } from 'react';
+
+type TrackedItem = Item & {
+  itemID?: number;
+  isNew?: boolean;
+  isModified?: boolean;
+};
 
 const InventoryScreen: React.FC = () => {
-  const [localItems, setLocalItems] = useState<Item[]>([]);
+  const { colors } = useTheme();
+  const [localItems, setLocalItems] = useState<TrackedItem[]>([]);
   const [serverItems, setServerItems] = useState<Item[]>([]);
+  const [deletedItemIds, setDeletedItemIds] = useState<number[]>([]);
+
   const headers = {
-    'X-Tenant-ID' : 'test_schema2',
-    'Content-Type' : 'application/json'
-  }
+    'X-Tenant-ID': 'test_schema2',
+    'Content-Type': 'application/json',
+  };
+
+  const columns: ColumnConfig<TrackedItem>[] = [
+    { key: 'name', label: 'Name', editable: true },
+    { key: 'brand', label: 'Brand', editable: true },
+    { key: 'unit', label: 'Unit', editable: true },
+    { key: 'amount', label: 'Amount', editable: true, inputType: 'number' },
+    { key: 'categories', label: 'Categories', editable: true },
+  ];
+
+  useFocusEffect(
+    useCallback(() => {
+      //refetch when tab in focus
+      fetchServerItems();
+    }, [])
+  );
 
   useEffect(() => {
     fetchServerItems();
@@ -20,62 +47,99 @@ const InventoryScreen: React.FC = () => {
     try {
       const response = await fetch('http://127.0.0.1:9000/api/items', {
         method: 'GET',
-        headers: headers
-      }); //should not hardcode this
+        headers,
+      });
       const data: Item[] = await response.json();
       setServerItems(data);
-      console.log('Items fetched: ', JSON.stringify(data))
+      const enriched = data.map((i) => ({ ...i, isNew: false, isModified: false }));
+      setLocalItems(enriched);
     } catch (error) {
       console.error('Failed to fetch server items:', error);
     }
   };
 
-  const handleEdit = (index: number, updated: Item) => {
+  const handleEdit = (index: number, updated: TrackedItem) => {
     const updatedItems = [...localItems];
-    updatedItems[index] = updated;
+    updatedItems[index] = {
+      ...updated,
+      isNew: updatedItems[index].isNew,
+      isModified: true,
+    };
     setLocalItems(updatedItems);
   };
 
   const handleAddRow = () => {
-    setLocalItems([...localItems, { name: '', brand: '', unit: '', amount: 0, categories: [] }]);
+    const newItem: TrackedItem = {
+      name: '',
+      brand: '',
+      unit: '',
+      amount: 0,
+      categories: [],
+      isNew: true,
+      isModified: false,
+    };
+    setLocalItems([...localItems, newItem]);
+  };
+
+  const handleDeleteRow = (index: number) => {
+    const item = localItems[index];
+    if (item.itemID !== undefined) {
+      setDeletedItemIds((prev) => [...prev, item.itemID!]);
+    }    
+    const updated = [...localItems];
+    updated.splice(index, 1);
+    setLocalItems(updated);
   };
 
   const handleSubmit = async () => {
-    const serverHash = new Set(serverItems.map(i => JSON.stringify({ name: i.name, brand: i.brand, unit: i.unit, amount: i.amount, categories: i.categories })));
-
-    const newItems = localItems.filter(
-      (item) => !serverHash.has(JSON.stringify({ name: item.name, brand: item.brand, unit: item.unit, amount: item.amount, categories: item.categories }))
-    );
-
-    for (const item of newItems) {
-      try {
-        const response = await fetch('http://127.0.0.1:9000/api/items', { //again, should not hardcode this
-          method: 'POST',
-          headers: headers,
-          body: JSON.stringify(item),
+    try {
+      // Delete items
+      for (const id of deletedItemIds) {
+        await fetch(`http://127.0.0.1:9000/api/items/${id}`, {
+          method: 'DELETE',
+          headers,
         });
-
-        if (response.ok) {
-          const saved = await response.json();
-          console.log('Item added:', saved);
-        } else {
-          console.warn('Failed to add item:', item);
-        }
-      } catch (error) {
-        console.error('Error posting item:', error);
       }
-    }
 
-    fetchServerItems(); // refresh from server
+      // Create or update items
+      for (const item of localItems) {
+        const { isNew, isModified, ...payload } = item;
+        const body = JSON.stringify(payload);
+
+        if (isNew) {
+          await fetch('http://127.0.0.1:9000/api/items', {
+            method: 'POST',
+            headers,
+            body,
+          });
+        } else if (isModified && item.itemID) {
+          await fetch(`http://127.0.0.1:9000/api/items/${item.itemID}`, {
+            method: 'PUT',
+            headers,
+            body,
+          });
+        }
+      }
+
+      // Refresh from backend
+      setDeletedItemIds([]);
+      fetchServerItems();
+    } catch (err) {
+      console.error('Error submitting changes:', err);
+    }
   };
 
   return (
-    <ScrollView contentContainerStyle={{ padding: 20 }}>
-      <Text style={{ fontSize: 20, marginBottom: 10 }}>Inventory</Text>
-      <GenericTable data={localItems} onEdit={handleEdit} />
+    <ScrollView style={{ backgroundColor: colors.background, flex: 1 }} contentContainerStyle={{ padding: 20 }}>
+      <GenericTable<TrackedItem>
+        data={localItems}
+        columns={columns}
+        onEdit={handleEdit}
+        onDelete={handleDeleteRow}
+      />
       <Button title="Add Item Row" onPress={handleAddRow} />
       <View style={{ marginTop: 10 }}>
-        <Button title="Submit New Items" onPress={handleSubmit} />
+        <Button title="Submit Changes" onPress={handleSubmit} />
       </View>
     </ScrollView>
   );

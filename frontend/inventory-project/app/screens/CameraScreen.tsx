@@ -5,10 +5,12 @@ import { View, Text } from 'react-native';
 import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { InventoryTabParamList } from '../types'; // adjust as needed
 import CameraComponent from '../../components/CameraComponent'; // adjust as needed
+import { useTheme } from 'react-native-paper';
 
 type CameraScreenProps = BottomTabScreenProps<InventoryTabParamList, 'Camera'>;
 
 const CameraScreen: React.FC<CameraScreenProps> = ({ navigation }) => {
+  const { colors } = useTheme();
   const handleCapture = (uri: string) => {
     // Navigate wherever needed — replace with actual route if in parent navigator
     console.log('Captured image URI:', uri);
@@ -16,8 +18,8 @@ const CameraScreen: React.FC<CameraScreenProps> = ({ navigation }) => {
   };
 
   return (
-    <View style={{ flex: 1 }}>
-      <Text style={{ textAlign: 'center', marginVertical: 10 }}>Camera Screen</Text>
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
+      <Text style={{ textAlign: 'center', marginVertical: 10, color: colors.onBackground }}>Capture Reciept</Text>
       <CameraComponent onCapture={handleCapture} />
     </View>
   );
