@@ -16,7 +16,7 @@ public class Purchase {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "purchaseID")
+    @Column(name = "purchase_ID")
     private Long purchaseID;
 
     private Double totalCost;

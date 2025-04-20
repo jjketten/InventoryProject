@@ -6,11 +6,13 @@ import { InventoryTabParamList } from '../types';
 
 import { useTheme } from 'react-native-paper';
 import CategoryScreen from '../screens/CategoryScreen';
+import ReminderScreen from '../screens/RemindersScreen';
 
 const Tab = createBottomTabNavigator<InventoryTabParamList>();
 
 const InventoryTab: React.FC = () => {
   const { colors } = useTheme(); 
+
   return (
     <Tab.Navigator
       screenOptions={{
@@ -25,9 +27,7 @@ const InventoryTab: React.FC = () => {
         headerTintColor: colors.onBackground,
       }}
     >
-      <Tab.Screen name="Current Inventory" component={InventoryScreen} />
-      <Tab.Screen name="Add Receipt" component={CameraScreen} />
-      <Tab.Screen name="Category" component={CategoryScreen} />
+        <Tab.Screen name="Reminders" component={ReminderScreen} />
     </Tab.Navigator>
   );
 };

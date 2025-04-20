@@ -9,6 +9,7 @@ interface Props<T> {
   columns: ColumnConfig<T>[];
   onEdit: (index: number, updatedItem: T) => void;
   onDelete?: (index: number) => void;
+  onEditToggle?: (index: number, field: keyof T, currentValue: boolean) => void;
   highlightRows?: number; // number of rows from bottom to highlight
 }
 
@@ -17,6 +18,7 @@ function GenericTable<T extends object>({
   columns,
   onEdit,
   onDelete,
+  onEditToggle,
   highlightRows = 0,
 }: Props<T>) {
   const highlightStartIndex = data.length - highlightRows;
@@ -47,6 +49,7 @@ function GenericTable<T extends object>({
           columns={columns}
           onEdit={onEdit}
           onDelete={onDelete}
+          onEditToggle={onEditToggle}
           isNew={index >= highlightStartIndex}
         />
       ))}

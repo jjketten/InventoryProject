@@ -12,11 +12,11 @@ import lombok.*;
 public class PurchaseItem {
 
     @Id
-    @Column(name = "itemID")
+    @Column(name = "item_ID")
     private Long itemID;
 
     @Id
-    @Column(name = "purchaseID")
+    @Column(name = "purchase_ID")
     private Long purchaseID;
 
     private String unit;
@@ -26,10 +26,10 @@ public class PurchaseItem {
     private double price;
 
     @ManyToOne
-    @JoinColumn(name = "itemID", insertable = false, updatable = false)
+    @JoinColumn(name = "item_ID", insertable = false, updatable = false)
     private Item item;
 
     @ManyToOne
-    @JoinColumn(name = "purchaseID", insertable = false, updatable = false)
+    @JoinColumn(name = "purchase_ID", insertable = false, updatable = false)
     private Purchase purchase;
 }

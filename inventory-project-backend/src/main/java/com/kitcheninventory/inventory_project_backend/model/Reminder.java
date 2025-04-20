@@ -5,6 +5,27 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 
+import com.kitcheninventory.inventory_project_backend.dto.ReminderDTO;
+
+@SqlResultSetMapping(
+    name = "ReminderDTOMapping",
+    classes = @ConstructorResult(
+        targetClass = ReminderDTO.class,
+        columns = {
+            @ColumnResult(name = "item_id", type = Long.class),
+            @ColumnResult(name = "item_name", type = String.class),
+            @ColumnResult(name = "brand", type = String.class),
+            @ColumnResult(name = "unit", type = String.class),
+            @ColumnResult(name = "amount", type = Integer.class),
+            @ColumnResult(name = "purchase_id", type = Long.class),
+            @ColumnResult(name = "date", type = java.time.LocalDate.class),
+            @ColumnResult(name = "store", type = String.class),
+            @ColumnResult(name = "totalcost", type = Double.class),
+            @ColumnResult(name = "datetime", type = java.time.LocalDateTime.class),
+            @ColumnResult(name = "completed", type = Boolean.class)
+        }
+    )
+)
 @Entity
 @Data
 @NoArgsConstructor
@@ -24,6 +45,6 @@ public class Reminder {
     @Column(name = "completed")
     private boolean completed;
 
-    @Column(name = "date_time")
+    @Column(name = "datetime")
     private LocalDateTime dateTime;
 }

@@ -9,7 +9,6 @@ import jakarta.persistence.ColumnResult;
 
 
 import jakarta.persistence.Entity;
-
 public record ReminderDTO(
     Long itemID,
     String itemName,

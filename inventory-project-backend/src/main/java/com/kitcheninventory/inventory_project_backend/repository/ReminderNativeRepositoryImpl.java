@@ -20,20 +20,20 @@ public class ReminderNativeRepositoryImpl implements ReminderNativeRepository {
         Query query = entityManager.createNativeQuery(
                 """
                 SELECT 
-                    r.itemid as item_id,
+                    r.item_id as item_id,
                     i.name as item_name,
                     i.brand,
                     i.unit,
                     i.amount,
-                    r.purchaseid,
+                    r.purchase_id,
                     p.date,
                     p.store,
                     p.totalcost,
                     r.datetime,
                     r.completed
                 FROM reminder r
-                JOIN item i ON i.item_id = r.itemid
-                JOIN purchase p ON p.purchaseid = r.purchaseid
+                JOIN item i ON i.item_id = r.item_id
+                JOIN purchase p ON p.purchase_id = r.purchase_id
                 """,
                 "ReminderDTOMapping"
         );

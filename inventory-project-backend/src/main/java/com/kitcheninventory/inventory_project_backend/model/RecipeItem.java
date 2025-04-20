@@ -21,11 +21,11 @@ public class RecipeItem {
     private int amount;
 
     @ManyToOne
-    @JoinColumn(name = "recipeID", insertable = false, updatable = false)
+    @JoinColumn(name = "recipe_ID", insertable = false, updatable = false)
     private Recipe recipe;
 
     @ManyToOne
-    @JoinColumn(name = "itemID", insertable = false, updatable = false)
+    @JoinColumn(name = "item_ID", insertable = false, updatable = false)
     private Item item;
 
     @ManyToOne
