@@ -7,18 +7,17 @@ import lombok.*;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@IdClass(RecipeStepId.class)
 @Table(name = "recipe_step")
 public class RecipeStep {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    private int stepNumber;
-
-    private String content;
-
     @ManyToOne
     @JoinColumn(name = "recipe_id")
     private Recipe recipe;
+
+    @Id
+    private int stepNumber;
+
+    private String content;
 }

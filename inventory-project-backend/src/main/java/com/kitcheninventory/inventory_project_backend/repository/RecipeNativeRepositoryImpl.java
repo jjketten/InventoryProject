@@ -200,11 +200,11 @@ public class RecipeNativeRepositoryImpl implements RecipeNativeRepository {
         .setParameter("id", dto.recipeID())
         .executeUpdate();
 
-        entityManager.createNativeQuery("DELETE FROM recipe_item WHERE recipeid = :id")
+        entityManager.createNativeQuery("DELETE FROM recipe_item WHERE recipe_id = :id")
             .setParameter("id", dto.recipeID())
             .executeUpdate();
 
-        entityManager.createNativeQuery("DELETE FROM recipe_step WHERE recipeid = :id")
+        entityManager.createNativeQuery("DELETE FROM recipe_step WHERE recipe_id = :id")
             .setParameter("id", dto.recipeID())
             .executeUpdate();
 
@@ -235,14 +235,16 @@ public class RecipeNativeRepositoryImpl implements RecipeNativeRepository {
 
         //verify by returning dto
 
-        RecipeDTO result = (RecipeDTO)entityManager.createNativeQuery("""
-            SELECT * FROM recipe WHERE recipe.id = :id
-        """)
-        // .setParameter("name", dto.name())
-        // .setParameter("reference", dto.reference())
-        .setParameter("id", dto.recipeID())
-        .getSingleResult();
+        // RecipeDTO result = (RecipeDTO)entityManager.createNativeQuery("""
+        //     SELECT * FROM recipe WHERE recipe.id = :id
+        // """)
+        // // .setParameter("name", dto.name())
+        // // .setParameter("reference", dto.reference())
+        // .setParameter("id", dto.recipeID())
+        // .getSingleResult();
 
-        return result;
+        return getRecipeById(dto.recipeID())
+            .orElseThrow(() -> new RuntimeException("Updated recipe not found"));
+
     }
 }
