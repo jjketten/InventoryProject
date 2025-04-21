@@ -1,4 +1,3 @@
-// types/item.ts
 export interface Item {
     itemID?: number;         
     name: string;

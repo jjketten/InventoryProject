@@ -1,6 +1,8 @@
 package com.kitcheninventory.inventory_project_backend.service;
 
 import com.kitcheninventory.inventory_project_backend.dto.CategoryDTO;
+import com.kitcheninventory.inventory_project_backend.dto.CategoryTotalDTO;
+import com.kitcheninventory.inventory_project_backend.dto.CategoryUnitTotalDTO;
 import com.kitcheninventory.inventory_project_backend.repository.CategoryNativeRepository;
 import org.springframework.stereotype.Service;
 
@@ -38,4 +40,13 @@ public class CategoryService {
     public void addItemToCategory(Long categoryId, Long itemId) {
         categoryRepository.addItemToCategory(categoryId, itemId);
     }
+
+    public List<CategoryUnitTotalDTO> getCategoryTotalsByUnit(Long categoryId) {
+        return categoryRepository.getCategoryTotalsByUnit(categoryId);
+    }
+
+    public List<CategoryTotalDTO> getAllCategoryTotals() {
+        return categoryRepository.getAllCategoryTotals();
+    }
+    
 }

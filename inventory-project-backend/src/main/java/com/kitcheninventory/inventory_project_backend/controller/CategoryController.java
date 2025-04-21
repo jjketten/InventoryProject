@@ -1,6 +1,8 @@
 package com.kitcheninventory.inventory_project_backend.controller;
 
 import com.kitcheninventory.inventory_project_backend.dto.CategoryDTO;
+import com.kitcheninventory.inventory_project_backend.dto.CategoryTotalDTO;
+import com.kitcheninventory.inventory_project_backend.dto.CategoryUnitTotalDTO;
 import com.kitcheninventory.inventory_project_backend.service.CategoryService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -61,4 +63,16 @@ public class CategoryController {
         categoryService.addItemToCategory(categoryId, itemId);
         return ResponseEntity.ok().build();
     }
+
+    // Aggregate query
+    @GetMapping("/{id}/totals")
+    public ResponseEntity<List<CategoryUnitTotalDTO>> getCategoryTotals(@PathVariable Long id) {
+        return ResponseEntity.ok(categoryService.getCategoryTotalsByUnit(id));
+    }
+
+    @GetMapping("/totals")
+    public ResponseEntity<List<CategoryTotalDTO>> getAllCategoryTotals() {
+        return ResponseEntity.ok(categoryService.getAllCategoryTotals());
+    }
+
 }
