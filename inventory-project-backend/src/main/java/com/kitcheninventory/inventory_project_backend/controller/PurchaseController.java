@@ -9,6 +9,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/purchases")
+@CrossOrigin(origins = "http://localhost:8081")
 public class PurchaseController {
 
     private final PurchaseService purchaseService;

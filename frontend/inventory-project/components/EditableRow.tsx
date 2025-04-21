@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { View, StyleSheet, Text } from 'react-native';
-import { TextInput, IconButton } from 'react-native-paper';
+import { TextInput, IconButton, DataTable } from 'react-native-paper';
 import { ColumnConfig } from './ColumnConfig';
 import ChipEditor from './ChipEditor';
 
@@ -26,7 +26,7 @@ function EditableRow<T extends object>({
   isNew = false,
 }: EditableRowProps<T>) {
   return (
-    <View
+    <DataTable.Row
       style={[
         styles.row,
         isNew && { backgroundColor: '#2a2f3a' },
@@ -37,24 +37,22 @@ function EditableRow<T extends object>({
         const value = item[key];
 
         return (
-          <View key={col.key as string} style={[styles.cell, { flex: col.width ?? 1 }]}>
-            {/* Category Editor */}
-            {col.key === 'categories' ? (
+          <DataTable.Cell key={col.key as string} style={[styles.cell, { flex: col.width ?? 40 }]}>
+            {/* Custom Render Logic First */}
+            {col.render ? (
+              col.render(value, item, index)
+            ) : col.key === 'categories' ? (
               <ChipEditor
                 categories={(value as string[]) || []}
                 onChange={(updated) => onEdit(index, { ...item, [key]: updated })}
               />
-            ) : 
-            /* Boolean Toggle */
-            typeof value === 'boolean' && col.editable && onEditToggle ? (
+            ) : typeof value === 'boolean' && col.editable && onEditToggle ? (
               <IconButton
                 icon={value ? 'check-circle' : 'checkbox-blank-circle-outline'}
                 size={20}
                 onPress={() => onEditToggle(index, key, value)}
               />
-            ) :
-            /* Text or Number Input */
-            col.editable ? (
+            ) : col.editable ? (
               <TextInput
                 value={String(value ?? '')}
                 onChangeText={(text) =>
@@ -68,27 +66,28 @@ function EditableRow<T extends object>({
                 dense
                 style={styles.input}
               />
-            ) :
-            /* Non-editable text */
-            (
+            ) : (
               <Text style={styles.text}>
-                {col.render ? col.render(value, item) : String(value)}
+                {String(value)}
               </Text>
             )}
-          </View>
+          </DataTable.Cell>
         );
       })}
 
+
       {/* Delete button */}
-      {onDelete && (
-        <IconButton
-          icon="delete"
-          size={18}
-          onPress={() => onDelete(index)}
-          style={styles.deleteButton}
-        />
-      )}
-    </View>
+      <DataTable.Cell key={'del_' + (index.toString())} style={[styles.cell, { flex: 10 }]}>
+        {onDelete && (
+          <IconButton
+            icon="delete"
+            size={18}
+            onPress={() => onDelete(index)}
+            style={styles.deleteButton}
+          />
+        )}
+      </DataTable.Cell>
+    </DataTable.Row>
   );
 }
 
@@ -106,6 +105,8 @@ const styles = StyleSheet.create({
   input: {
     backgroundColor: 'transparent',
     color: 'white',
+    // width: 'auto',
+    flex: 1,
   },
   text: {
     color: 'white',

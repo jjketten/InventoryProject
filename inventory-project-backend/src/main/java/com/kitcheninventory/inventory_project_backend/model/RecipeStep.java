@@ -12,12 +12,15 @@ import lombok.*;
 public class RecipeStep {
 
     @Id
-    @ManyToOne
-    @JoinColumn(name = "recipe_id")
-    private Recipe recipe;
+    @Column(name = "recipe_id")
+    private Long recipeID;
 
     @Id
     private int stepNumber;
 
     private String content;
+
+    @ManyToOne
+    @JoinColumn(name = "recipe_id", insertable = false, updatable = false)
+    private Recipe recipe;
 }

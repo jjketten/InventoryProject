@@ -9,19 +9,7 @@ import java.util.Objects;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RecipeStepId implements Serializable {
-    private Long recipe;
+    private Long recipeID;
     private int stepNumber;
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof RecipeStepId that)) return false;
-        return stepNumber == that.stepNumber &&
-               Objects.equals(recipe, that.recipe);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(recipe, stepNumber);
-    }
 }
+

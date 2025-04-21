@@ -5,6 +5,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Repository;
+import org.springframework.web.bind.annotation.CrossOrigin;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -38,7 +39,7 @@ public class RecipeNativeRepositoryImpl implements RecipeNativeRepository {
         // Insert recipe items
         for (RecipeItemDTO item : dto.items()) {
             entityManager.createNativeQuery("""
-                INSERT INTO recipe_item (recipe_id, itemid, unit, amount, categoryid)
+                INSERT INTO recipe_item (recipe_id, item_id, unit, amount, category_id)
                 VALUES (:recipe_ID, :itemID, :unit, :amount, :categoryID)
             """)
             .setParameter("recipe_ID", recipe_ID)
@@ -65,46 +66,62 @@ public class RecipeNativeRepositoryImpl implements RecipeNativeRepository {
 
     @Override
     public List<RecipeDTO> getAllRecipes() {
-        List<Object[]> results = entityManager.createNativeQuery("""
-            SELECT 
-                r.recipe_id, r.name, r.reference,
-                ri.itemid, ri.unit, ri.amount, ri.categoryid,
-                rs.stepnumber, rs.content,
-                c.name AS category_name
-            FROM recipe r
-            LEFT JOIN recipe_item ri ON r.recipe_id = ri.recipe_id
-            LEFT JOIN recipe_step rs ON r.recipe_id = rs.recipe_id
-            LEFT JOIN category c ON ri.categoryid = c.categoryid
-            ORDER BY r.recipe_id, rs.stepnumber
+        // Step 1: Fetch all basic recipe info
+        List<Object[]> recipeRows = entityManager.createNativeQuery("""
+            SELECT recipe_id, name, reference
+            FROM recipe
+            ORDER BY recipe_id
         """).getResultList();
 
+        // Step 2: Fetch all recipe items
+        List<Object[]> itemRows = entityManager.createNativeQuery("""
+            SELECT ri.recipe_id, ri.item_id, ri.unit, ri.amount, ri.category_id, c.name AS category_name
+            FROM recipe_item ri
+            LEFT JOIN category c ON ri.category_id = c.category_id
+        """).getResultList();
+
+        // Step 3: Fetch all recipe steps
+        List<Object[]> stepRows = entityManager.createNativeQuery("""
+            SELECT recipe_id, stepnumber, content
+            FROM recipe_step
+            ORDER BY recipe_id, stepnumber
+        """).getResultList();
+
+        // Step 4: Build recipe DTOs
         Map<Long, RecipeDTO> recipeMap = new LinkedHashMap<>();
 
-        for (Object[] row : results) {
-            Long recipe_ID = ((Number) row[0]).longValue();
-
-            RecipeDTO dto = recipeMap.computeIfAbsent(recipe_ID, id -> new RecipeDTO(
-                recipe_ID,
+        for (Object[] row : recipeRows) {
+            Long recipeID = ((Number) row[0]).longValue();
+            recipeMap.put(recipeID, new RecipeDTO(
+                recipeID,
                 (String) row[1],
                 (String) row[2],
                 new ArrayList<>(),
                 new ArrayList<>()
             ));
+        }
 
-            if (row[3] != null) {
+        for (Object[] row : itemRows) {
+            Long recipeID = ((Number) row[0]).longValue();
+            RecipeDTO dto = recipeMap.get(recipeID);
+            if (dto != null) {
                 dto.items().add(new RecipeItemDTO(
-                    ((Number) row[3]).longValue(),
-                    (String) row[4],
-                    ((Number) row[5]).intValue(),
-                    ((Number) row[6]).longValue(),
-                    (String) row[9]
+                    ((Number) row[1]).longValue(),
+                    (String) row[2],
+                    ((Number) row[3]).intValue(),
+                    row[4] != null ? ((Number) row[4]).longValue() : null,
+                    (String) row[5]
                 ));
             }
+        }
 
-            if (row[7] != null) {
+        for (Object[] row : stepRows) {
+            Long recipeID = ((Number) row[0]).longValue();
+            RecipeDTO dto = recipeMap.get(recipeID);
+            if (dto != null) {
                 dto.steps().add(new RecipeStepDTO(
-                    ((Number) row[7]).intValue(),
-                    (String) row[8]
+                    ((Number) row[1]).intValue(),
+                    (String) row[2]
                 ));
             }
         }
@@ -114,57 +131,67 @@ public class RecipeNativeRepositoryImpl implements RecipeNativeRepository {
 
 
 
+
     @Override
     public Optional<RecipeDTO> getRecipeById(Long id) {
-        List<Object[]> results = entityManager.createNativeQuery("""
-            SELECT 
-                r.recipe_id, r.name, r.reference,
-                ri.itemid, ri.unit, ri.amount, ri.categoryid,
-                rs.stepnumber, rs.content,
-                c.name AS category_name
-            FROM recipe r
-            LEFT JOIN recipe_item ri ON r.recipe_id = ri.recipe_id
-            LEFT JOIN recipe_step rs ON r.recipe_id = rs.recipe_id
-            LEFT JOIN category c ON ri.categoryid = c.categoryid
-            WHERE r.recipe_id = :id
-            ORDER BY rs.stepnumber
+        //fetch basic recipe info
+        Object[] recipeRow = (Object[]) entityManager.createNativeQuery("""
+            SELECT recipe_id, name, reference
+            FROM recipe
+            WHERE recipe_id = :id
+        """)
+        .setParameter("id", id)
+        .getSingleResult();
+
+        if (recipeRow == null) {
+            return Optional.empty();
+        }
+
+        Long recipeID = ((Number) recipeRow[0]).longValue();
+        String name = (String) recipeRow[1];
+        String reference = (String) recipeRow[2];
+
+        //fetch recipe items
+        List<Object[]> itemRows = entityManager.createNativeQuery("""
+            SELECT ri.item_id, ri.unit, ri.amount, ri.category_id, c.name AS category_name
+            FROM recipe_item ri
+            LEFT JOIN category c ON ri.category_id = c.category_id
+            WHERE ri.recipe_id = :id
         """)
         .setParameter("id", id)
         .getResultList();
 
-        if (results.isEmpty()) {
-            return Optional.empty();
+        List<RecipeItemDTO> items = new ArrayList<>();
+        for (Object[] row : itemRows) {
+            items.add(new RecipeItemDTO(
+                ((Number) row[0]).longValue(),
+                (String) row[1],
+                ((Number) row[2]).intValue(),
+                row[3] != null ? ((Number) row[3]).longValue() : null,
+                (String) row[4]
+            ));
         }
 
-        Object[] firstRow = results.get(0);
-        RecipeDTO dto = new RecipeDTO(
-            ((Number) firstRow[0]).longValue(),
-            (String) firstRow[1],
-            (String) firstRow[2],
-            new ArrayList<>(),
-            new ArrayList<>()
-        );
+        //fetch steps
+        List<Object[]> stepRows = entityManager.createNativeQuery("""
+            SELECT stepnumber, content
+            FROM recipe_step
+            WHERE recipe_id = :id
+            ORDER BY stepnumber
+        """)
+        .setParameter("id", id)
+        .getResultList();
 
-        for (Object[] row : results) {
-            if (row[3] != null) {
-                dto.items().add(new RecipeItemDTO(
-                    ((Number) row[3]).longValue(),
-                    (String) row[4],
-                    ((Number) row[5]).intValue(),
-                    ((Number) row[6]).longValue(),
-                    (String) row[9]
-                ));
-            }
-
-            if (row[7] != null) {
-                dto.steps().add(new RecipeStepDTO(
-                    ((Number) row[7]).intValue(),
-                    (String) row[8]
-                ));
-            }
+        List<RecipeStepDTO> steps = new ArrayList<>();
+        for (Object[] row : stepRows) {
+            steps.add(new RecipeStepDTO(
+                ((Number) row[0]).intValue(),
+                (String) row[1]
+            ));
         }
 
-        return Optional.of(dto);
+        RecipeDTO recipe = new RecipeDTO(recipeID, name, reference, items, steps);
+        return Optional.of(recipe);
     }
 
     
@@ -211,7 +238,7 @@ public class RecipeNativeRepositoryImpl implements RecipeNativeRepository {
         //insert items and then steps separately
         for (RecipeItemDTO item : dto.items()) {
             entityManager.createNativeQuery("""
-                INSERT INTO recipe_item (recipe_id, itemid, unit, amount, categoryid)
+                INSERT INTO recipe_item (recipe_id, item_id, unit, amount, category_id)
                 VALUES (:recipe_ID, :itemID, :unit, :amount, :categoryID)
             """)
             .setParameter("recipe_ID", dto.recipeID())

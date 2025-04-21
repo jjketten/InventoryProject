@@ -10,6 +10,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/reminders")
+@CrossOrigin(origins = "http://localhost:8081")
 public class ReminderController {
 
     private final ReminderService reminderService;

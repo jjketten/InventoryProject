@@ -57,6 +57,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     paddingTop: 4,
     gap: 4,
+    flex: 5,
   },
   chip: {
     margin: 2,

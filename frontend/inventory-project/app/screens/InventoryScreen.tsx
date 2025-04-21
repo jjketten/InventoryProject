@@ -29,7 +29,7 @@ const InventoryScreen: React.FC = () => {
     { key: 'brand', label: 'Brand', editable: true },
     { key: 'unit', label: 'Unit', editable: true },
     { key: 'amount', label: 'Amount', editable: true, inputType: 'number' },
-    { key: 'categories', label: 'Categories', editable: true },
+    { key: 'categories', label: 'Categories', editable: false },
   ];
 
   useFocusEffect(

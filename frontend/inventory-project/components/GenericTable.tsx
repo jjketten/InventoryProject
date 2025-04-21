@@ -30,13 +30,13 @@ function GenericTable<T extends object>({
         {columns.map((col) => (
           <DataTable.Title
             key={col.key as string}
-            style={{ flex: col.width ?? 1 }}
+            style={{ flex: col.width ?? 40 }}
           >
             {col.label}
           </DataTable.Title>
         ))}
         {onDelete && (
-          <DataTable.Title style={{ width: 40 }}> </DataTable.Title>
+          <DataTable.Title style={{ flex: 10 }}> </DataTable.Title>
         )}
       </DataTable.Header>
 
