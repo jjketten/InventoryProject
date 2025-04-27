@@ -7,7 +7,7 @@ import { ColumnConfig } from './ColumnConfig';
 interface Props<T> {
   data: T[];
   columns: ColumnConfig<T>[];
-  onEdit: (index: number, updatedItem: T) => void;
+  onEdit?: (index: number, updatedItem: T) => void;
   onDelete?: (index: number) => void;
   onEditToggle?: (index: number, field: keyof T, currentValue: boolean) => void;
   highlightRows?: number; // number of rows from bottom to highlight
@@ -47,7 +47,7 @@ function GenericTable<T extends object>({
           item={row}
           index={index}
           columns={columns}
-          onEdit={onEdit}
+          onEdit={onEdit ?? (()=>{})}
           onDelete={onDelete}
           onEditToggle={onEditToggle}
           isNew={index >= highlightStartIndex}

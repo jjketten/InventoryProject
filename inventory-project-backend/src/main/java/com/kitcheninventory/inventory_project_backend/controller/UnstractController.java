@@ -10,6 +10,7 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 @RequestMapping("/api/unstract")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "http://localhost:8081")
 public class UnstractController {
 
     private final UnstractService unstractService;

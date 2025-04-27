@@ -26,6 +26,16 @@ const ChipEditor: React.FC<ChipEditorProps> = ({ categories, onChange }) => {
 
   return (
     <View style={styles.container}>
+      <TextInput
+        value={input}
+        onChangeText={setInput}
+        onSubmitEditing={handleAdd}
+        placeholder="Add category"
+        mode="flat"
+        dense
+        style={styles.input}
+        placeholderTextColor={colors.onSurfaceVariant}
+      />
       {categories.map((category) => (
         <Chip
           key={category}
@@ -36,16 +46,6 @@ const ChipEditor: React.FC<ChipEditorProps> = ({ categories, onChange }) => {
           {category}
         </Chip>
       ))}
-      <TextInput
-        value={input}
-        onChangeText={setInput}
-        onSubmitEditing={handleAdd}
-        placeholder="Add category"
-        mode="outlined"
-        dense
-        style={styles.input}
-        placeholderTextColor={colors.onSurfaceVariant}
-      />
     </View>
   );
 };
@@ -63,8 +63,10 @@ const styles = StyleSheet.create({
     margin: 2,
   },
   input: {
-    minWidth: 100,
-    maxWidth: 140,
+    // minWidth: 100,
+    // maxWidth: 140,
+    // minHeight: 12,
+    // maxHeight: 50,
     padding: 4,
     margin: 2,
   },

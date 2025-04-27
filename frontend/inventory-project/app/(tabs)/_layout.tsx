@@ -18,7 +18,7 @@ import { useTheme } from 'react-native-paper';
 
 export default function TabLayout() {
   // const colorScheme = useColorScheme();
-  const paperTheme = PaperDarkTheme; // or useColorScheme logic here
+  const paperTheme = PaperDarkTheme; 
   const { colors } = useTheme(); // from react-native-paper
 
   return (

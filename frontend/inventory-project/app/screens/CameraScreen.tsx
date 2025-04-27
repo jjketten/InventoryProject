@@ -1,10 +1,8 @@
-// CameraScreen.tsx
-
 import React from 'react';
 import { View, Text } from 'react-native';
 import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
-import { InventoryTabParamList } from '../types'; // adjust as needed
-import CameraComponent from '../../components/CameraComponent'; // adjust as needed
+import { InventoryTabParamList } from '../types'; 
+import CameraComponent from '../../components/CameraComponent'; 
 import { useTheme } from 'react-native-paper';
 
 type CameraScreenProps = BottomTabScreenProps<InventoryTabParamList, 'Camera'>;

@@ -2,14 +2,13 @@ package com.kitcheninventory.inventory_project_backend.repository;
 
 import com.kitcheninventory.inventory_project_backend.dto.PurchaseDTO;
 import com.kitcheninventory.inventory_project_backend.dto.PurchaseItemDTO;
-import com.kitcheninventory.inventory_project_backend.model.Purchase;
-import com.kitcheninventory.inventory_project_backend.model.PurchaseItem;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Repository;
 
-import java.sql.*;
+import java.sql.Date;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,145 +21,129 @@ public class PurchaseNativeRepositoryImpl implements PurchaseNativeRepository {
     @Override
     @Transactional
     public PurchaseDTO createPurchase(PurchaseDTO dto) {
-        Connection conn = entityManager.unwrap(Connection.class);
-        Long purchaseId;
+        // 1) Insert the purchase record
+        Number purchaseIdNum = (Number) entityManager.createNativeQuery("""
+            INSERT INTO purchase (totalcost, date, store)
+            VALUES (:totalCost, :date, :store)
+            RETURNING purchase_id
+        """)
+        .setParameter("totalCost", dto.totalCost())
+        .setParameter("date", Date.valueOf(dto.date()))
+        .setParameter("store", dto.store())
+        // .executeUpdate();
+        .getSingleResult();
 
-        try {
-            //insert the purchase
-            PreparedStatement ps = conn.prepareStatement(
-                "INSERT INTO purchase (total_cost, date, store) VALUES (?, ?, ?) RETURNING purchase_id"
-            );
-            ps.setDouble(1, dto.totalCost());
-            ps.setDate(2, Date.valueOf(dto.date()));
-            ps.setString(3, dto.store());
-            ResultSet rs = ps.executeQuery();
+        Long purchaseId = purchaseIdNum.longValue();
 
-            if (rs.next()) {
-                purchaseId = rs.getLong(1);
-            } else {
-                throw new SQLException("Failed to insert purchase");
-            }
+        // 2) Pull back the generated purchase_id
+        // Long purchaseId = ((Number) entityManager
+        //     .createNativeQuery("SELECT currval(pg_get_serial_sequence('purchase','purchase_id'))")
+        //     .getSingleResult())
+        //     .longValue();
 
-            //insert the items for that puchase
-            for (PurchaseItemDTO item : dto.items()) {
-                PreparedStatement psItem = conn.prepareStatement(
-                    "INSERT INTO purchase_item (purchase_id, item_id, unit, amount, price) VALUES (?, ?, ?, ?, ?)"
-                );
-                psItem.setLong(1, purchaseId);
-                psItem.setLong(2, item.itemID());
-                psItem.setString(3, item.unit());
-                psItem.setInt(4, item.amount());
-                psItem.setDouble(5, item.price());
-                psItem.executeUpdate();
-            }
-
-            return new PurchaseDTO(purchaseId, dto.totalCost(), dto.date(), dto.store(), dto.items());
-
-        } catch (SQLException e) {
-            throw new RuntimeException("Failed to create purchase", e);
+        // 3) Insert each purchase_item row
+        for (PurchaseItemDTO item : dto.items()) {
+            entityManager.createNativeQuery("""
+                INSERT INTO purchase_item (purchase_id, item_id, unit, amount, price)
+                VALUES (:purchaseId, :itemId, :unit, :amount, :price)
+            """)
+            .setParameter("purchaseId", purchaseId)
+            .setParameter("itemId",    item.itemID())
+            .setParameter("unit",      item.unit())
+            .setParameter("amount",    item.amount())
+            .setParameter("price",     item.price())
+            .executeUpdate();
         }
+
+        // 4) Return a DTO with the new ID and original payload
+        return new PurchaseDTO(
+            purchaseId,
+            dto.totalCost(),
+            dto.date(),
+            dto.store(),
+            dto.items()
+        );
     }
 
     @Override
     public List<PurchaseDTO> getAllPurchases() {
-        Connection conn = entityManager.unwrap(Connection.class);
-        List<PurchaseDTO> purchases = new ArrayList<>();
+        @SuppressWarnings("unchecked")
+        List<Object[]> rows = entityManager.createNativeQuery("""
+            SELECT purchase_id, totalcost, date, store
+            FROM purchase
+            ORDER BY purchase_id
+        """).getResultList();
 
-        try {
-            PreparedStatement ps = conn.prepareStatement("SELECT * FROM purchase");
-            ResultSet rs = ps.executeQuery();
+        List<PurchaseDTO> result = new ArrayList<>();
+        for (Object[] row : rows) {
+            Long       id        = ((Number) row[0]).longValue();
+            double     cost      = ((Number) row[1]).doubleValue();
+            LocalDate  date      = ((Date)   row[2]).toLocalDate();
+            String     store     = (String)  row[3];
+            List<PurchaseItemDTO> items = getItemsForPurchase(id);
 
-            while (rs.next()) {
-                Long purchaseId = rs.getLong("purchase_id");
-
-                List<PurchaseItemDTO> items = getItemsForPurchase(purchaseId);
-
-                purchases.add(new PurchaseDTO(
-                        purchaseId,
-                        rs.getDouble("total_cost"),
-                        rs.getDate("date").toLocalDate(),
-                        rs.getString("store"),
-                        items
-                ));
-            }
-
-        } catch (SQLException e) {
-            throw new RuntimeException("Failed to retrieve purchases", e);
+            result.add(new PurchaseDTO(id, cost, date, store, items));
         }
-
-        return purchases;
+        return result;
     }
 
     @Override
     public PurchaseDTO getPurchaseById(Long id) {
-        Connection conn = entityManager.unwrap(Connection.class);
+        Object[] row = (Object[]) entityManager.createNativeQuery("""
+            SELECT purchase_id, totalcost, date, store
+            FROM purchase
+            WHERE purchase_id = :id
+        """)
+        .setParameter("id", id)
+        .getSingleResult();
 
-        try {
-            PreparedStatement ps = conn.prepareStatement("SELECT * FROM purchase WHERE purchase_id = ?");
-            ps.setLong(1, id);
-            ResultSet rs = ps.executeQuery();
+        Long       purchaseId = ((Number) row[0]).longValue();
+        double     cost       = ((Number) row[1]).doubleValue();
+        LocalDate  date       = ((Date)   row[2]).toLocalDate();
+        String     store      = (String)  row[3];
+        List<PurchaseItemDTO> items = getItemsForPurchase(purchaseId);
 
-            if (rs.next()) {
-                List<PurchaseItemDTO> items = getItemsForPurchase(id);
-
-                return new PurchaseDTO(
-                        id,
-                        rs.getDouble("total_cost"),
-                        rs.getDate("date").toLocalDate(),
-                        rs.getString("store"),
-                        items
-                );
-            } else {
-                throw new RuntimeException("Purchase not found: " + id);
-            }
-
-        } catch (SQLException e) {
-            throw new RuntimeException("Failed to retrieve purchase", e);
-        }
+        return new PurchaseDTO(purchaseId, cost, date, store, items);
     }
 
     @Override
     @Transactional
     public void deletePurchase(Long id) {
-        Connection conn = entityManager.unwrap(Connection.class);
+        entityManager.createNativeQuery("""
+            DELETE FROM purchase_item
+            WHERE purchase_id = :id
+        """)
+        .setParameter("id", id)
+        .executeUpdate();
 
-        try {
-            PreparedStatement deleteItems = conn.prepareStatement(
-                "DELETE FROM purchase_item WHERE purchase_id = ?"
-            );
-            deleteItems.setLong(1, id);
-            deleteItems.executeUpdate();
-
-            PreparedStatement deletePurchase = conn.prepareStatement(
-                "DELETE FROM purchase WHERE purchase_id = ?"
-            );
-            deletePurchase.setLong(1, id);
-            deletePurchase.executeUpdate();
-
-        } catch (SQLException e) {
-            throw new RuntimeException("Failed to delete purchase: " + id, e);
-        }
+        entityManager.createNativeQuery("""
+            DELETE FROM purchase
+            WHERE purchase_id = :id
+        """)
+        .setParameter("id", id)
+        .executeUpdate();
     }
 
-    private List<PurchaseItemDTO> getItemsForPurchase(Long purchaseId) throws SQLException {
-        Connection conn = entityManager.unwrap(Connection.class);
+    @SuppressWarnings("unchecked")
+    private List<PurchaseItemDTO> getItemsForPurchase(Long purchaseId) {
+        List<Object[]> rows = entityManager.createNativeQuery("""
+            SELECT item.item_id, item.name, item.brand, purchase_item.unit, purchase_item.amount, purchase_item.price
+            FROM (purchase_item LEFT JOIN item ON purchase_item.item_id = item.item_id)
+            WHERE purchase_id = :id
+        """)
+        .setParameter("id", purchaseId)
+        .getResultList();
+
         List<PurchaseItemDTO> items = new ArrayList<>();
-
-        PreparedStatement ps = conn.prepareStatement(
-            "SELECT * FROM purchase_item WHERE purchase_id = ?"
-        );
-        ps.setLong(1, purchaseId);
-        ResultSet rs = ps.executeQuery();
-
-        while (rs.next()) {
-            items.add(new PurchaseItemDTO(
-                    rs.getLong("item_id"),
-                    rs.getString("unit"),
-                    rs.getInt("amount"),
-                    rs.getDouble("price")
-            ));
+        for (Object[] row : rows) {
+            Long   itemId   = ((Number) row[0]).longValue();
+            String name     = (String) row[1];
+            String brand    = (String) row[2];
+            String unit     = (String) row[3];
+            int    amount   = ((Number) row[4]).intValue();
+            double price    = ((Number) row[5]).doubleValue();
+            items.add(new PurchaseItemDTO(itemId, name, brand, unit, amount, price));
         }
-
         return items;
     }
 }
