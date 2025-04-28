@@ -5,6 +5,10 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
+import { initializeReminderScheduler } from './services/ReminderScheduler';
+
+
+
 
 import {
   Provider as PaperProvider,
@@ -27,6 +31,7 @@ export default function RootLayout() {
   useEffect(() => {
     if (loaded) {
       SplashScreen.hideAsync();
+      // initializeReminderScheduler();
     }
   }, [loaded]);
 

@@ -10,4 +10,5 @@ import java.io.Serializable;
 public class ReminderId implements Serializable {
     private Long itemID;
     private Long purchaseID;
+    private String description;
 }

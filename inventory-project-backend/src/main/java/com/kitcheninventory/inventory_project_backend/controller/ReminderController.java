@@ -5,7 +5,7 @@ import com.kitcheninventory.inventory_project_backend.service.ReminderService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 
 @RestController

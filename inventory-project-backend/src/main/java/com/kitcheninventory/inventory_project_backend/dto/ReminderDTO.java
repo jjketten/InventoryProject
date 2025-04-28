@@ -1,7 +1,8 @@
 package com.kitcheninventory.inventory_project_backend.dto;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.OffsetDateTime;
 
 import jakarta.persistence.SqlResultSetMapping;
 import jakarta.persistence.ConstructorResult;
@@ -14,13 +15,16 @@ public record ReminderDTO(
     String itemName,
     String itemBrand,
     String itemUnit,
-    int itemAmount,
+    float itemAmount,
 
     Long purchaseID,
     LocalDate purchaseDate,
     String purchaseStore,
     double purchaseTotalCost,
 
-    LocalDateTime dateTime,
-    boolean completed
+    // OffsetDateTime dateTime,
+    OffsetDateTime dateTime,
+    boolean completed,
+
+    String description
 ) {}

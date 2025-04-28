@@ -1,16 +1,16 @@
 export interface Reminder {
-    itemID: number;
-    itemName: string;
-    brand: string;
-    unit: string;
-    amount: number;
+    itemID: number | null;
+    itemName?: string;
+    itemBrand: string | undefined;
+    itemUnit: string;
+    itemAmount: number;
   
-    purchaseID: number;
-    date: string; // ISO format string, purchase date (from java.time.LocalDate)
-    store: string;
-    totalCost: number;
+    purchaseID: number | null;
+    purchaseDate: string; // ISO format string, purchase date (from java.time.LocalDate)
+    purchaseStore: string;
+    purchaseTotalCost: number;
   
-    datetime: string; // ISO format string, expiration date (from java.time.LocalDateTime)
+    dateTime: string; // ISO format string, expiration date (from java.time.LocalDateTime)
     completed: boolean;
   
     description: string;

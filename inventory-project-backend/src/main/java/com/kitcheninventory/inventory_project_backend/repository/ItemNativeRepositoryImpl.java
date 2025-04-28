@@ -41,6 +41,33 @@ public class ItemNativeRepositoryImpl implements ItemNativeRepository {
         return new ItemDTO(itemId, dto.name(), dto.brand(), dto.unit(), dto.amount(), dto.categories());
     }
 
+    @Transactional
+    public ItemDTO saveItemWithCategoriesWithID(ItemDTO dto) {
+        em.createNativeQuery("""
+            INSERT INTO item (item_id, name, brand, unit, amount)
+            VALUES (:itemid, :name, :brand, :unit, :amount)
+        """)
+        .setParameter("itemid", dto.itemID())
+        .setParameter("name", dto.name())
+        .setParameter("brand", dto.brand())
+        .setParameter("unit", dto.unit())
+        .setParameter("amount", dto.amount())
+        .executeUpdate();
+        
+        
+        Long itemId = dto.itemID();
+
+        for (String categoryName : dto.categories()) {
+            Long catId = getOrCreateCategoryId(categoryName);
+            em.createNativeQuery("INSERT INTO item_category (item_id, category_id) VALUES (:itemId, :catId)")
+              .setParameter("itemId", itemId)
+              .setParameter("catId", catId)
+              .executeUpdate();
+        }
+
+        return new ItemDTO(itemId, dto.name(), dto.brand(), dto.unit(), dto.amount(), dto.categories());
+    }
+
     @Override
     public List<ItemDTO> getAllItemsWithCategories() {
         List<Object[]> rows = em.createNativeQuery("""
@@ -111,10 +138,10 @@ public class ItemNativeRepositoryImpl implements ItemNativeRepository {
     private static class ItemDTOBuilder {
         private final Long id;
         private final String name, brand, unit;
-        private final int amount;
+        private final float amount;
         private final List<String> categories = new ArrayList<>();
 
-        ItemDTOBuilder(Long id, String name, String brand, String unit, int amount) {
+        ItemDTOBuilder(Long id, String name, String brand, String unit, float amount) {
             this.id = id;
             this.name = name;
             this.brand = brand;
@@ -132,7 +159,7 @@ public class ItemNativeRepositoryImpl implements ItemNativeRepository {
     }
 
     @Override
-    public void updateItem(Long id, String name, String brand, String unit, int amount) {
+    public void updateItem(Long id, String name, String brand, String unit, float amount) {
         String sql = """
             UPDATE item SET name = :name, brand = :brand, unit = :unit, amount = :amount
             WHERE item_id = :id
@@ -212,7 +239,7 @@ public class ItemNativeRepositoryImpl implements ItemNativeRepository {
         String name = (String) row[1];
         String brand = (String) row[2];
         String unit = (String) row[3];
-        int amount = ((Number) row[4]).intValue();
+        float amount = ((Number) row[4]).intValue();
 
         // Fetch categories for the item
         String categoryQuery = """

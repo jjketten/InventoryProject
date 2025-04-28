@@ -6,6 +6,7 @@ import { ColumnConfig } from '../../components/ColumnConfig';
 import { Item } from '../../types/item';
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback } from 'react';
+import { APIURL } from '../config';
 
 type TrackedItem = Item & {
   itemID?: number;
@@ -20,7 +21,7 @@ const InventoryScreen: React.FC = () => {
   const [deletedItemIds, setDeletedItemIds] = useState<number[]>([]);
 
   const headers = {
-    'X-Tenant-ID': 'test_schema2',
+    'X-Tenant-ID': 'test_schema3',
     'Content-Type': 'application/json',
   };
 
@@ -28,7 +29,7 @@ const InventoryScreen: React.FC = () => {
     { key: 'name', label: 'Name', editable: true },
     { key: 'brand', label: 'Brand', editable: true },
     { key: 'unit', label: 'Unit', editable: true },
-    { key: 'amount', label: 'Amount', editable: true, inputType: 'number' },
+    { key: 'amount', label: 'Amount', editable: true, inputType: 'decimal' },
     { key: 'categories', label: 'Categories', editable: true },
   ];
 
@@ -45,7 +46,7 @@ const InventoryScreen: React.FC = () => {
 
   const fetchServerItems = async () => {
     try {
-      const response = await fetch('http://127.0.0.1:9000/api/items', {
+      const response = await fetch(APIURL+'/items', {
         method: 'GET',
         headers,
       });
@@ -95,7 +96,7 @@ const InventoryScreen: React.FC = () => {
     try {
       // Delete items
       for (const id of deletedItemIds) {
-        await fetch(`http://127.0.0.1:9000/api/items/${id}`, {
+        await fetch(`${APIURL}/items/${id}`, {
           method: 'DELETE',
           headers,
         });
@@ -107,13 +108,13 @@ const InventoryScreen: React.FC = () => {
         const body = JSON.stringify(payload);
 
         if (isNew) {
-          await fetch('http://127.0.0.1:9000/api/items', {
+          await fetch(APIURL+'/items', {
             method: 'POST',
             headers,
             body,
           });
         } else if (isModified && item.itemID) {
-          await fetch(`http://127.0.0.1:9000/api/items/${item.itemID}`, {
+          await fetch(`${APIURL}/items/${item.itemID}`, {
             method: 'PUT',
             headers,
             body,

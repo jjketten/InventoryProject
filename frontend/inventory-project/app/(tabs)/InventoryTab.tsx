@@ -26,7 +26,7 @@ const InventoryTab: React.FC = () => {
       }}
     >
       <Tab.Screen name="Current Inventory" component={InventoryScreen} />
-      <Tab.Screen name="Add Receipt" component={CameraScreen} />
+      {/* <Tab.Screen name="Add Receipt" component={CameraScreen} /> */}
       <Tab.Screen name="Category" component={CategoryScreen} />
     </Tab.Navigator>
   );

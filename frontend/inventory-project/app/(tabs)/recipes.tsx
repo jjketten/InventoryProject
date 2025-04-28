@@ -5,6 +5,7 @@ import { RecipeDTO } from '@/types/RecipeDTO';
 import { useRouter } from 'expo-router';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useTheme } from 'react-native-paper';
+import { APIURL } from '../config';
 
 
 const RecipeScreen = () => {
@@ -15,12 +16,12 @@ const RecipeScreen = () => {
 
 
   const headers = {
-    'X-Tenant-ID': 'test_schema2',
+    'X-Tenant-ID': 'test_schema3',
     'Content-Type': 'application/json',
   };
 
   const fetchRecipes = async () => {
-    const res = await fetch('http://localhost:9000/api/recipes', {
+    const res = await fetch(APIURL+'/recipes', {
       method: 'GET',
       headers,
     });

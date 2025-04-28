@@ -11,6 +11,7 @@ interface Props<T> {
   onDelete?: (index: number) => void;
   onEditToggle?: (index: number, field: keyof T, currentValue: boolean) => void;
   highlightRows?: number; // number of rows from bottom to highlight
+  onAddReminder?: (index: number) => void; 
 }
 
 function GenericTable<T extends object>({
@@ -20,6 +21,7 @@ function GenericTable<T extends object>({
   onDelete,
   onEditToggle,
   highlightRows = 0,
+  onAddReminder,
 }: Props<T>) {
   const highlightStartIndex = data.length - highlightRows;
 
@@ -28,12 +30,15 @@ function GenericTable<T extends object>({
       {/* Table Header */}
       <DataTable.Header>
         {columns.map((col) => (
+          (!((col.key == "reminderDateTime" || col.key != "reminderDescription") && col.editable == false))  && //oh god
+          (
           <DataTable.Title
             key={col.key as string}
             style={{ flex: col.width ?? 40 }}
           >
             {col.label}
           </DataTable.Title>
+          )
         ))}
         {onDelete && (
           <DataTable.Title style={{ flex: 10 }}> </DataTable.Title>
@@ -51,6 +56,7 @@ function GenericTable<T extends object>({
           onDelete={onDelete}
           onEditToggle={onEditToggle}
           isNew={index >= highlightStartIndex}
+          onAddReminder={onAddReminder}
         />
       ))}
     </DataTable>

@@ -78,7 +78,8 @@ public class PurchaseService {
                 }
 
                 // 1b) bump the amount
-                int newAmount = existing.amount() + incoming.amount();
+                System.out.println("[createPurchaseAndAdjustInventory] successful item match, attempting to increase item quantity for item:" + existing.itemID());
+                float newAmount = existing.amount() + incoming.amount();
                 itemRepo.updateItem(
                     existing.itemID(),
                     existing.name(),
@@ -86,26 +87,41 @@ public class PurchaseService {
                     existing.unit(),
                     newAmount
                 );
+                
+                // 1c) add new categories 
+                if (!incoming.categories().isEmpty()) {
+                    itemRepo.addItemCategoriesByName(
+                      existing.itemID(),
+                      incoming.categories()
+                    );
+                }
 
                 adjustedItems.add(incoming);
 
             } else {
                 // 1c) does not exist: insert new item
                 ItemDTO toCreate = new ItemDTO(
-                    null,
+                    ((incoming.itemID() > 0 ) ? incoming.itemID() : null),
                     incoming.name(),
                     incoming.brand(),
                     incoming.unit(),
                     incoming.amount(),
-                    Collections.emptyList()  // or pass categories if you have them
+                    incoming.categories()
                 );
-                ItemDTO created = itemRepo.saveItemWithCategories(toCreate);
+                ItemDTO created;
+                if(toCreate.itemID() == null) {
+                    created = itemRepo.saveItemWithCategories(toCreate);
+                }
+                else {
+                    created = itemRepo.saveItemWithCategoriesWithID(toCreate);
+                }
 
                 // now reference the newly assigned itemID
                 adjustedItems.add(new PurchaseItemDTO(
                     created.itemID(),
                     created.name(),
                     created.brand(),
+                    created.categories(),
                     created.unit(),
                     incoming.amount(),
                     incoming.price()

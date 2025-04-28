@@ -125,6 +125,18 @@ public class PurchaseNativeRepositoryImpl implements PurchaseNativeRepository {
     }
 
     @SuppressWarnings("unchecked")
+    private List<String> getCategoriesForItem(Long itemId) { //prob should use item or category repository for this
+        return entityManager.createNativeQuery("""
+            SELECT c.name
+            FROM category c
+            JOIN item_category ic ON c.category_id = ic.category_id
+            WHERE ic.item_id = :itemId
+            """)
+        .setParameter("itemId", itemId)
+        .getResultList();
+    }
+
+    @SuppressWarnings("unchecked")
     private List<PurchaseItemDTO> getItemsForPurchase(Long purchaseId) {
         List<Object[]> rows = entityManager.createNativeQuery("""
             SELECT item.item_id, item.name, item.brand, purchase_item.unit, purchase_item.amount, purchase_item.price
@@ -142,7 +154,19 @@ public class PurchaseNativeRepositoryImpl implements PurchaseNativeRepository {
             String unit     = (String) row[3];
             int    amount   = ((Number) row[4]).intValue();
             double price    = ((Number) row[5]).doubleValue();
-            items.add(new PurchaseItemDTO(itemId, name, brand, unit, amount, price));
+
+            // fetch the categories
+            List<String> categories = getCategoriesForItem(itemId);
+
+            items.add(new PurchaseItemDTO(
+                itemId,
+                name,
+                brand,
+                categories,
+                unit,
+                amount,
+                price
+            ));
         }
         return items;
     }

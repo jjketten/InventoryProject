@@ -10,26 +10,28 @@ import {
 import { PurchaseDTO } from '@/types/PurchaseDTO';
 import { useTheme } from 'react-native-paper';
 import { useFocusEffect } from '@react-navigation/native';
+import { APIURL } from '../config';
+import { PurchaseItemDTO } from '@/types/PurchaseItemDTO';
 
 export default function PurchasesScreen() {
   const router = useRouter();
   const { colors } = useTheme();
 
-  const [purchases, setPurchases] = useState<PurchaseDTO[]>([]);
+  const [purchases, setPurchases] = useState<PurchaseDTO<PurchaseItemDTO>[]>([]);
   const [loading, setLoading] = useState(true);
 
   const headers = {
-    'X-Tenant-ID': 'test_schema2',
+    'X-Tenant-ID': 'test_schema3',
     'Content-Type': 'application/json',
   };
 
   const fetchPurchases = async () => {
     try {
-      const res = await fetch('http://localhost:9000/api/purchases', {
+      const res = await fetch(APIURL+'/purchases', {
         method: 'GET',
         headers,
       });
-      const data: PurchaseDTO[] = await res.json();
+      const data: PurchaseDTO<PurchaseItemDTO>[] = await res.json();
       setPurchases(data);
     } catch (err) {
       console.error('Failed to load purchases', err);

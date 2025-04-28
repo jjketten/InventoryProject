@@ -1,6 +1,7 @@
 
 export interface UnstractItem {
     brand: string;
+    categories: string[];
     cost: string;
     itemName: string;
     productCode: string;

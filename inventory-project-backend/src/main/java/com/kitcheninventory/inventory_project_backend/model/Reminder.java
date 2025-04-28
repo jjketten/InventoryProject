@@ -3,7 +3,7 @@ package com.kitcheninventory.inventory_project_backend.model;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 import com.kitcheninventory.inventory_project_backend.dto.ReminderDTO;
 
@@ -21,8 +21,9 @@ import com.kitcheninventory.inventory_project_backend.dto.ReminderDTO;
             @ColumnResult(name = "date", type = java.time.LocalDate.class),
             @ColumnResult(name = "store", type = String.class),
             @ColumnResult(name = "totalcost", type = Double.class),
-            @ColumnResult(name = "datetime", type = java.time.LocalDateTime.class),
-            @ColumnResult(name = "completed", type = Boolean.class)
+            @ColumnResult(name = "datetime", type = java.time.OffsetDateTime.class),
+            @ColumnResult(name = "completed", type = Boolean.class),
+            @ColumnResult(name = "description", type = String.class)
         }
     )
 )
@@ -36,15 +37,22 @@ public class Reminder {
 
     @Id
     @Column(name = "item_id")
+    @JoinColumn(name = "item_id")
     private Long itemID;
 
     @Id
+    @JoinColumn(name = "purchase_id")
     @Column(name = "purchase_id")
+    
     private Long purchaseID;
 
     @Column(name = "completed")
     private boolean completed;
 
     @Column(name = "datetime")
-    private LocalDateTime dateTime;
+    private OffsetDateTime dateTime;
+
+    @Id
+    @Column(name = "description")
+    private String description;
 }

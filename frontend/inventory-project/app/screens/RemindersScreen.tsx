@@ -1,9 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { View, ScrollView, Switch } from 'react-native';
 import { Button, useTheme } from 'react-native-paper';
 import { Reminder } from '../../types/reminder';
 import GenericTable from '../../components/GenericTable';
 import { ColumnConfig } from '../../components/ColumnConfig';
+import { APIURL } from '../config';
+import { useFocusEffect } from '@react-navigation/native';
 
 const ReminderScreen: React.FC = () => {
   const { colors } = useTheme();
@@ -11,13 +13,13 @@ const ReminderScreen: React.FC = () => {
   const [showCompleted, setShowCompleted] = useState(false);
 
   const headers = {
-    'X-Tenant-ID': 'test_schema2',
+    'X-Tenant-ID': 'test_schema3',
     'Content-Type': 'application/json',
   };
 
   const fetchReminders = async () => {
     try {
-      const response = await fetch('http://127.0.0.1:9000/api/reminders', {
+      const response = await fetch(APIURL+'/reminders', {
         method: 'GET',
         headers,
       });
@@ -32,12 +34,21 @@ const ReminderScreen: React.FC = () => {
     fetchReminders();
   }, []);
 
+  useFocusEffect(
+      useCallback(() => {
+        // refetch on focus
+        fetchReminders()
+      }, [])
+  );
+
   const handleComplete = async (index: number) => {
     const reminder = reminders[index];
+    const params = new URLSearchParams();
+    params.append("completed","true");
     try {
       await fetch(
-        `http://127.0.0.1:9000/api/reminders/${reminder.itemID}/${reminder.purchaseID}/complete`,
-        { method: 'POST', headers }
+        `${APIURL}/reminders/${reminder.itemID}/${reminder.purchaseID}/completion?${params}`,
+        { method: 'PATCH', headers }
       );
       fetchReminders();
     } catch (e) {
@@ -49,7 +60,7 @@ const ReminderScreen: React.FC = () => {
     const reminder = reminders[index];
     try {
       await fetch(
-        `http://127.0.0.1:9000/api/reminders/${reminder.itemID}/${reminder.purchaseID}`,
+        `${APIURL}/reminders/${reminder.itemID}/${reminder.purchaseID}`,
         { method: 'DELETE', headers }
       );
       fetchReminders();
@@ -59,25 +70,25 @@ const ReminderScreen: React.FC = () => {
   };
 
   const columns: ColumnConfig<Reminder>[] = [
-    { key: 'date', label: 'Purchase Date' },
+    { key: 'purchaseDate', label: 'Purchase Date' },
     { key: 'purchaseID', label: 'Purchase ID' },
-    { key: 'datetime', label: 'Expiration Date' },
+    { key: 'dateTime', label: 'Expiration Date' },
     { key: 'description', label: 'Reminder' },
     { key: 'itemID', label: 'Item ID' },
     { key: 'itemName', label: 'Item Name' },
-    { key: 'brand', label: 'Brand' },
-    { key: 'unit', label: 'Unit' },
-    { key: 'amount', label: 'Amount', inputType: 'number' },
+    { key: 'itemBrand', label: 'Brand' },
+    { key: 'itemUnit', label: 'Unit' },
+    { key: 'itemAmount', label: 'Amount', inputType: 'number' },
     {
       key: 'completed',
       label: 'Done',
       render: (value) => (value ? '✔️' : ''),
     },
-    {
-      key: 'actions',
-      label: 'Actions',
-      isAction: true,
-    },
+    // {
+    //   key: 'actions',
+    //   label: 'Actions',
+    //   isAction: true,
+    // },
   ];
 
   const visibleReminders = reminders.filter((r) => showCompleted || !r.completed);
@@ -91,7 +102,7 @@ const ReminderScreen: React.FC = () => {
           thumbColor={colors.primary}
         />
         <Button onPress={() => setShowCompleted(!showCompleted)}>
-          {showCompleted ? 'Hide Completed' : 'Show Completed'}
+          {showCompleted ? 'Showing Completed' : 'Hiding Completed'}
         </Button>
       </View>
 

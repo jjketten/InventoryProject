@@ -21,7 +21,7 @@ public class PurchaseItem {
 
     private String unit;
 
-    private int amount;
+    private float amount;
 
     private double price;
 

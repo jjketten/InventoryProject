@@ -20,7 +20,7 @@ public class RecipeItem {
     private Long itemID;
 
     private String unit;
-    private int amount;
+    private float amount;
 
     @ManyToOne
     @JoinColumn(name = "recipe_id", insertable = false, updatable = false)

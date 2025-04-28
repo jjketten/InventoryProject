@@ -9,6 +9,7 @@ import { RecipeItemDTO } from '@/types/RecipeItemDTO';
 import { RecipeStepDTO } from '@/types/RecipeStepDTO';
 import Autocomplete from 'react-native-autocomplete-input';
 import { useTheme } from 'react-native-paper';
+import { APIURL } from '../config';
 
 // type TrackedItem = Item & {
 //   itemID?: number;
@@ -36,7 +37,7 @@ export default function RecipeDetailScreen() {
   });
 
   const headers = {
-    'X-Tenant-ID': 'test_schema2',
+    'X-Tenant-ID': 'test_schema3',
     'Content-Type': 'application/json',
   };
 
@@ -47,18 +48,18 @@ export default function RecipeDetailScreen() {
   useEffect(() => {
     const fetchAll = async () => {
       try {
-        const itemRes = await fetch('http://localhost:9000/api/items', { method: 'GET', headers });
+        const itemRes = await fetch(APIURL+'/items', { method: 'GET', headers });
         const itemData = await itemRes.json();
         const itemsList = itemData.map((i: any) => ({ itemID: i.itemID, name: i.name }));
         setItemsRef(itemsList);
   
-        const categoryRes = await fetch('http://localhost:9000/api/categories', { method: 'GET', headers });
+        const categoryRes = await fetch(APIURL+'/categories', { method: 'GET', headers });
         const categoryData = await categoryRes.json();
         const categoriesList = categoryData.map((c: any) => ({ categoryID: c.categoryID, name: c.name }));
         setCategoriesRef(categoriesList);
   
         if (!isNew) {
-          const recipeRes = await fetch(`http://localhost:9000/api/recipes/${id}`, { method: 'GET', headers });
+          const recipeRes = await fetch(`${APIURL}/recipes/${id}`, { method: 'GET', headers });
           const recipeData = await recipeRes.json();
           console.log('original recipe data:', JSON.stringify(recipeData))
   
@@ -109,7 +110,7 @@ export default function RecipeDetailScreen() {
         text: 'Delete',
         style: 'destructive',
         onPress: async () => {
-          await fetch(`http://localhost:9000/api/recipes/${recipe.recipeID}`, {
+          await fetch(`${APIURL}/recipes/${recipe.recipeID}`, {
             method: 'DELETE',
             headers
           });
@@ -148,13 +149,13 @@ export default function RecipeDetailScreen() {
     };
 
     if (!isNew) {
-      await fetch(`http://localhost:9000/api/recipes/${recipe.recipeID}`, {
+      await fetch(`${APIURL}/recipes/${recipe.recipeID}`, {
         method: 'PUT',
         headers: headers,
         body: JSON.stringify(body),
       });
     } else {
-      const res = await fetch('http://localhost:9000/api/recipes', {
+      const res = await fetch(APIURL+'/recipes', {
         method: 'POST',
         headers: headers,
         body: JSON.stringify(body),

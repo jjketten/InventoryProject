@@ -7,6 +7,6 @@ public record ItemDTO(
     String name,
     String brand,
     String unit,
-    int amount,
+    float amount,
     List<String> categories //backend handles resolution of name vs id
 ) {}

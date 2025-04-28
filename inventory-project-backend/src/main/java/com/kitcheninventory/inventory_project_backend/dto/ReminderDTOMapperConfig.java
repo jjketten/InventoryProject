@@ -21,7 +21,7 @@
 //             @ColumnResult(name = "date", type = java.time.LocalDate.class),
 //             @ColumnResult(name = "store", type = String.class),
 //             @ColumnResult(name = "totalcost", type = Double.class),
-//             @ColumnResult(name = "datetime", type = java.time.LocalDateTime.class),
+//             @ColumnResult(name = "datetime", type = java.time.OffsetDateTime.class),
 //             @ColumnResult(name = "completed", type = Boolean.class)
 //         }
 //     )

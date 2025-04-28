@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -105,15 +106,21 @@ public class UnstractService {
     
 
         List<UnstractItemDTO> items = StreamSupport.stream(output.path("Items").spliterator(), false)
-            .map(item -> new UnstractItemDTO(
+        .map(item -> {
+            List<String> categories = new ArrayList<>();
+            item.path("Categories").forEach(cat -> categories.add(cat.asText()));
+
+            return new UnstractItemDTO(
                 normalize(item.path("Brand").asText()),
                 item.path("Cost").asText(),
                 item.path("ItemName").asText(),
                 item.path("ProductCode").asText(),
                 item.path("Quantity").asText(),
-                normalize(item.path("Units").asText())
-            ))
-            .collect(Collectors.toList());
+                normalize(item.path("Units").asText()),
+                categories
+            );
+        })
+        .collect(Collectors.toList());
 
         return new UnstractResultDTO(
             output.path("Date").asText(),

@@ -21,7 +21,7 @@ public class Item {
     private String name;
     private String brand;
     private String unit;
-    private int amount;
+    private float amount;
 
     @OneToMany(mappedBy = "item", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<PurchaseItem> purchaseItems = new HashSet<>();

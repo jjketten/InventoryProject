@@ -6,6 +6,7 @@ import { Item } from '../../types/item';
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback } from 'react';
 import { CategoryUnitTotalDTO } from '@/types/CategoryUnitTotalDTO';
+import { APIURL } from '../config';
 
 interface Category {
   categoryID: number;
@@ -29,7 +30,7 @@ const CategoryScreen: React.FC = () => {
   
 
   const headers = {
-    'X-Tenant-ID': 'test_schema2',
+    'X-Tenant-ID': 'test_schema3',
     'Content-Type': 'application/json'
   };
 
@@ -51,26 +52,26 @@ const CategoryScreen: React.FC = () => {
   const safeFilteredItems = filteredItems.filter(item => item.itemID !== undefined);
 
   const fetchCategories = async () => {
-    const res = await fetch('http://127.0.0.1:9000/api/categories', { headers });
+    const res = await fetch(APIURL+'/categories', { headers });
     const data = await res.json();
     setCategories(data);
   };
 
   const fetchItems = async () => {
-    const res = await fetch('http://127.0.0.1:9000/api/items', { headers });
+    const res = await fetch(APIURL+'/items', { headers });
     const data = await res.json();
     setItems(data);
   };
 
   // const fetchTotals = async (categoryIds : number[]) => {
   //   // categoryIds.forEach((id) => {
-  //   //   const res = await fetch(`http://127.0.0.1:9000/api/categories/${categoryId}/totals`)
+  //   //   const res = await fetch(`${APIURL}/categories/${categoryId}/totals`)
   //   // }
   //   // )
   //   var arr = []
   //   for await (const res of categoryIds.map( id => {
   //     categoryID:id;
-  //     totals: fetch(`http://127.0.0.1:9000/api/categories/${id}/totals`)
+  //     totals: fetch(`${APIURL}/categories/${id}/totals`)
   //   })) {
   //     //???
   //     arr.push(res)
@@ -78,7 +79,7 @@ const CategoryScreen: React.FC = () => {
   // }
 
   const fetchTotals = async () => {
-    const res = await fetch('http://127.0.0.1:9000/api/categories/totals', { headers });
+    const res = await fetch(APIURL+'/categories/totals', { headers });
     const totals: CategoryTotal[] = await res.json();
     setTotalsPerCategory(totals);
   }
@@ -89,7 +90,7 @@ const CategoryScreen: React.FC = () => {
   };
 
   const handleAddItem = async (itemId: number, categoryId: number) => {
-    const url = `http://127.0.0.1:9000/api/categories/${categoryId}/items/${itemId}`;
+    const url = `${APIURL}/categories/${categoryId}/items/${itemId}`;
     await fetch(url, { method: 'POST', headers });
     fetchCategories(); // refresh
     setQuery('');
@@ -99,7 +100,7 @@ const CategoryScreen: React.FC = () => {
   };
 
   const handleRenameCategory = async (categoryId: number, newName: string) => {
-    await fetch(`http://127.0.0.1:9000/api/categories/${categoryId}/rename`, {
+    await fetch(`${APIURL}/categories/${categoryId}/rename`, {
       method: 'PUT',
       headers,
       body: JSON.stringify(newName),
@@ -108,7 +109,7 @@ const CategoryScreen: React.FC = () => {
   };
 
   const handleDeleteCategory = async (categoryId: number) => {
-    await fetch(`http://127.0.0.1:9000/api/categories/${categoryId}`, {
+    await fetch(`${APIURL}/categories/${categoryId}`, {
       method: 'DELETE',
       headers,
     });

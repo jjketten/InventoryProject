@@ -4,9 +4,11 @@ import com.kitcheninventory.inventory_project_backend.dto.ReminderDTO;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
+import jakarta.transaction.Transactional;
+
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 
 @Repository
@@ -30,7 +32,8 @@ public class ReminderNativeRepositoryImpl implements ReminderNativeRepository {
                     p.store,
                     p.totalcost,
                     r.datetime,
-                    r.completed
+                    r.completed,
+                    r.description
                 FROM reminder r
                 JOIN item i ON i.item_id = r.item_id
                 JOIN purchase p ON p.purchase_id = r.purchase_id
@@ -42,24 +45,27 @@ public class ReminderNativeRepositoryImpl implements ReminderNativeRepository {
     }
 
     @Override
-    public void insertReminder(Long itemID, Long purchaseID, LocalDateTime dateTime, boolean completed) {
+    @Transactional
+    public void insertReminder(Long itemID, Long purchaseID, OffsetDateTime dateTime, boolean completed, String desc) {
         Query query = entityManager.createNativeQuery(
                 """
-                INSERT INTO reminder (itemid, purchaseid, datetime, completed)
-                VALUES (:itemID, :purchaseID, :dateTime, :completed)
+                INSERT INTO reminder (item_id, purchase_id, datetime, completed, description)
+                VALUES (:itemID, :purchaseID, :dateTime, :completed, :desc)
                 """
         );
         query.setParameter("itemID", itemID);
         query.setParameter("purchaseID", purchaseID);
         query.setParameter("dateTime", dateTime);
         query.setParameter("completed", completed);
+        query.setParameter("desc", desc);
         query.executeUpdate();
     }
 
     @Override
+    @Transactional
     public void deleteReminder(Long itemID, Long purchaseID) {
         Query query = entityManager.createNativeQuery(
-                "DELETE FROM reminder WHERE itemid = :itemID AND purchaseid = :purchaseID"
+                "DELETE FROM reminder WHERE item_id = :itemID AND purchase_id = :purchaseID"
         );
         query.setParameter("itemID", itemID);
         query.setParameter("purchaseID", purchaseID);
@@ -67,9 +73,10 @@ public class ReminderNativeRepositoryImpl implements ReminderNativeRepository {
     }
 
     @Override
+    @Transactional
     public void updateCompletionStatus(Long itemID, Long purchaseID, boolean completed) {
         Query query = entityManager.createNativeQuery(
-                "UPDATE reminder SET completed = :completed WHERE itemid = :itemID AND purchaseid = :purchaseID"
+                "UPDATE reminder SET completed = :completed WHERE item_id = :itemID AND purchase_id = :purchaseID"
         );
         query.setParameter("completed", completed);
         query.setParameter("itemID", itemID);

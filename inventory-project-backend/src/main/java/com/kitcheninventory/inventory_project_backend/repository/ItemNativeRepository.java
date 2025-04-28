@@ -8,6 +8,7 @@ import java.util.Optional;
 
 public interface ItemNativeRepository {
     ItemDTO saveItemWithCategories(ItemDTO dto);
+    ItemDTO saveItemWithCategoriesWithID(ItemDTO dto);
 
     List<ItemDTO> getAllItemsWithCategories();
 
@@ -15,7 +16,7 @@ public interface ItemNativeRepository {
 
     void deleteItemAndAssociations(Long id);
 
-    void updateItem(Long id, String name, String brand, String unit, int amount);
+    void updateItem(Long id, String name, String brand, String unit, float amount);
 
     void clearItemCategories(Long itemId);
 

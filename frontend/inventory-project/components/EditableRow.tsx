@@ -3,6 +3,7 @@ import { DataTable, TextInput, IconButton } from 'react-native-paper';
 import { StyleSheet, Text, View } from 'react-native';
 import { ColumnConfig } from './ColumnConfig';
 import ChipEditor from './ChipEditor';
+import { format, isValid, parse, parseISO } from 'date-fns';
 
 interface EditableRowProps<T> {
   item: T;
@@ -12,6 +13,7 @@ interface EditableRowProps<T> {
   onEditToggle?: (index: number, field: keyof T, currentValue: boolean) => void;
   onDelete?: (index: number) => void;
   isNew?: boolean;
+  onAddReminder?: (index: number) => void;
 }
 
 export default function EditableRow<T extends object>({
@@ -22,6 +24,7 @@ export default function EditableRow<T extends object>({
   onEditToggle,
   onDelete,
   isNew = false,
+  onAddReminder,
 }: EditableRowProps<T>) {
   return (
     <DataTable.Row style={[styles.row, isNew && styles.newRow]}>
@@ -29,20 +32,10 @@ export default function EditableRow<T extends object>({
         const key = col.key as keyof T;
         const rawVal = item[key] as any;
 
-        // 1) read-only columns
-        if (!col.editable) {
-          return (
-            <DataTable.Cell
-              key={col.key as string}
-              style={[styles.cell, { flex: col.width ?? 40 }]}
-            >
-              <Text style={styles.text}>{String(rawVal)}</Text>
-            </DataTable.Cell>
-          );
-        }
+        
 
         // 2) chip editor
-        if (col.key === 'categories') {
+        if (col.key === 'categories' && col.editable) {
           return (
             <DataTable.Cell
               key={col.key as string}
@@ -75,7 +68,7 @@ export default function EditableRow<T extends object>({
         }
 
         // 4) numeric / decimal
-        if (col.inputType === 'number' || col.inputType === 'decimal') {
+        if ((col.inputType === 'number' || col.inputType === 'decimal') && col.editable) {
           return (
             <NumericCell
               key={col.key as string}
@@ -90,7 +83,55 @@ export default function EditableRow<T extends object>({
           );
         }
 
-        // 5) all other editable fields
+        if((col.key == "reminderDateTime" || col.key == "reminderDescription") && col.editable == false) {
+          return (<></>);
+        }
+
+        // Reminder Button
+        if (col.key === 'reminderDateTime' && onAddReminder) {
+          return (
+            <DataTable.Cell
+              key={col.key as string}
+              style={[styles.cell, { flex: col.width ?? 40, flexWrap: 'wrap', flexDirection: 'column'}]}
+            >
+              <div style={{textAlign: 'center'}}>
+                <IconButton
+                  icon="bell-plus"
+                  size={18}
+                  onPress={() => onAddReminder(index)}
+                  // style={[flex: 1]}
+                />
+              </div>
+              <Text>{(rawVal == "" || rawVal == null || rawVal == undefined) ? "" : (parseISO(rawVal).toLocaleDateString('en-US') +" " + parseISO(rawVal).toLocaleTimeString('en-US'))}</Text>
+            </DataTable.Cell>
+          );
+        }
+
+        if (!col.editable && (key.toString()).includes("dateTime")) {
+          const newdate = (new Date(Date.parse(rawVal)))
+          return (
+            <DataTable.Cell
+              key={col.key as string}
+              style={[styles.cell, { flex: col.width ?? 40 }]}
+            >
+              <Text style={styles.text}>{newdate.toLocaleDateString() + " " + newdate.toLocaleTimeString()}</Text>
+            </DataTable.Cell>
+          );
+        }
+
+        // other read-only columns
+        if (!col.editable) {
+          return (
+            <DataTable.Cell
+              key={col.key as string}
+              style={[styles.cell, { flex: col.width ?? 40 }]}
+            >
+              <Text style={styles.text}>{String(rawVal)}</Text>
+            </DataTable.Cell>
+          );
+        }
+
+        //default
         return (
           <DataTable.Cell
             key={col.key as string}
@@ -110,7 +151,7 @@ export default function EditableRow<T extends object>({
       })}
 
       {onDelete && (
-        <DataTable.Cell style={[styles.cell, { flex: 10 }]}>
+        <DataTable.Cell style={[styles.cell, { flex: 10 }]}> 
           <IconButton
             icon="delete"
             size={18}
@@ -123,18 +164,6 @@ export default function EditableRow<T extends object>({
   );
 }
 
-// const InventoryScreen: React.FC = () => {
-// interface cellProps<T> {
-//   style : any,
-//   index : number,
-//   item : T,
-//   field : keyof T,
-//   rawValue : any,
-//   inputType?: 'number' | 'decimal';
-//   onEdit: (i: number, updated: T) => void;
-// }
-
-// const NumericCell2: React.FC<cellProps<any>> = ({ style, index, item, field, rawValue, inputType, onEdit }) => {
 function NumericCell<T extends object>({
   style,
   index,
@@ -144,44 +173,31 @@ function NumericCell<T extends object>({
   inputType,
   onEdit,
 }: {
-  style: any,
+  style: any;
   index: number;
   item: T;
   field: keyof T;
   rawValue: any;
   inputType?: 'number' | 'decimal';
-  onEdit: (i: number, updated: T) => void;
+  onEdit: (index: number, updated: T) => void;
 }) {
   const [text, setText] = useState(() => String(rawValue ?? ''));
 
-  // keep local text in sync if item[field] changes from outside
   useEffect(() => {
     setText(String(item[field] ?? ''));
   }, [item, field]);
 
-  function commitIfValid(value: string) {
-    if (inputType === 'number') {
-      const n = parseInt(value, 10);
-      if (!isNaN(n)) {
-        onEdit(index, { ...item, [field]: n } as T);
-      }
-    } else {
-      // decimal
-      const n = Number(value);
-      if (!isNaN(n)) {
-        onEdit(index, { ...item, [field]: n } as T);
-      }
-    }
-  }
-
   function handleBlur() {
-    // format on blur
-    if (inputType === 'decimal') {
-      const n = Number(text);
+    if (inputType === 'number') {
+      const n = parseInt(text, 10);
       if (!isNaN(n)) {
-        const formatted = n.toFixed(2);
-        setText(formatted);
         onEdit(index, { ...item, [field]: n } as T);
+      }
+    } else if (inputType === 'decimal') {
+      const n = parseFloat(text);
+      if (!isNaN(n)) {
+        onEdit(index, { ...item, [field]: n } as T);
+        setText(n.toFixed(2)); // format after committing
       }
     }
   }
@@ -191,12 +207,15 @@ function NumericCell<T extends object>({
       <TextInput
         value={text}
         onChangeText={(t) => {
-          setText(t);
-          // only commit if the text is already a valid number (or partial decimal like '12.' is okay to hold locally)
-          if (/^\d+$/.test(t) && inputType === 'number') {
-            commitIfValid(t);
-          } else if (/^\d*\.?\d*$/.test(t) && inputType === 'decimal') {
-            commitIfValid(t);
+          // Just update local text immediately, even if partial
+          if (inputType === 'number') {
+            if (/^\d*$/.test(t)) {
+              setText(t);
+            }
+          } else if (inputType === 'decimal') {
+            if (/^\d*\.?\d*$/.test(t)) {
+              setText(t);
+            }
           }
         }}
         onBlur={handleBlur}

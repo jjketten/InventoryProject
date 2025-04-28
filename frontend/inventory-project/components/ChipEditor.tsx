@@ -63,12 +63,14 @@ const styles = StyleSheet.create({
     margin: 2,
   },
   input: {
-    // minWidth: 100,
+    // width: 'auto',
+    minWidth: 50,
     // maxWidth: 140,
     // minHeight: 12,
     // maxHeight: 50,
     padding: 4,
     margin: 2,
+    flexShrink: 1
   },
 });
 
