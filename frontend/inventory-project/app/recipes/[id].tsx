@@ -9,7 +9,7 @@ import { RecipeItemDTO } from '@/types/RecipeItemDTO';
 import { RecipeStepDTO } from '@/types/RecipeStepDTO';
 import Autocomplete from 'react-native-autocomplete-input';
 import { useTheme } from 'react-native-paper';
-import { APIURL } from '../config';
+import { APIURL, TENANTID } from '../config';
 
 // type TrackedItem = Item & {
 //   itemID?: number;
@@ -37,7 +37,7 @@ export default function RecipeDetailScreen() {
   });
 
   const headers = {
-    'X-Tenant-ID': 'test_schema3',
+    'X-Tenant-ID': TENANTID,
     'Content-Type': 'application/json',
   };
 

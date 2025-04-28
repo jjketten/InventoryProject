@@ -10,7 +10,7 @@ import {
 import { PurchaseDTO } from '@/types/PurchaseDTO';
 import { useTheme } from 'react-native-paper';
 import { useFocusEffect } from '@react-navigation/native';
-import { APIURL } from '../config';
+import { APIURL, TENANTID } from '../config';
 import { PurchaseItemDTO } from '@/types/PurchaseItemDTO';
 
 export default function PurchasesScreen() {
@@ -21,7 +21,7 @@ export default function PurchasesScreen() {
   const [loading, setLoading] = useState(true);
 
   const headers = {
-    'X-Tenant-ID': 'test_schema3',
+    'X-Tenant-ID': TENANTID,
     'Content-Type': 'application/json',
   };
 

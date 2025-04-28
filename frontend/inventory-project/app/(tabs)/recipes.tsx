@@ -5,7 +5,7 @@ import { RecipeDTO } from '@/types/RecipeDTO';
 import { useRouter } from 'expo-router';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useTheme } from 'react-native-paper';
-import { APIURL } from '../config';
+import { APIURL, TENANTID } from '../config';
 
 
 const RecipeScreen = () => {
@@ -16,7 +16,7 @@ const RecipeScreen = () => {
 
 
   const headers = {
-    'X-Tenant-ID': 'test_schema3',
+    'X-Tenant-ID': TENANTID,
     'Content-Type': 'application/json',
   };
 

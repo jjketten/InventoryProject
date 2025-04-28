@@ -31,6 +31,19 @@ export default function EditableRow<T extends object>({
       {columns.map((col) => {
         const key = col.key as keyof T;
         const rawVal = item[key] as any;
+        const isReminderButton = (col.key == "reminderDateTime");
+        var reminderDesc = "?" as any;
+        if(isReminderButton) {
+          const reminderDescPos = columns.map(c => c.key).indexOf("reminderDescription");
+          reminderDesc = item["reminderDescription" as keyof T];
+        }
+        const reminderButtonDisabled = (reminderDesc == "?" || reminderDesc == "" || reminderDesc == null || reminderDesc == undefined)
+        //   if(reminderDesc == "") {
+        //     reminderDesc = "?"
+        //   }
+        // } else {
+        //   reminderDesc = "?";
+        // }
 
         
 
@@ -96,6 +109,7 @@ export default function EditableRow<T extends object>({
             >
               <div style={{textAlign: 'center'}}>
                 <IconButton
+                  disabled = {reminderButtonDisabled}
                   icon="bell-plus"
                   size={18}
                   onPress={() => onAddReminder(index)}

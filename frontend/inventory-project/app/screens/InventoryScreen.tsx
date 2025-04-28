@@ -6,7 +6,7 @@ import { ColumnConfig } from '../../components/ColumnConfig';
 import { Item } from '../../types/item';
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback } from 'react';
-import { APIURL } from '../config';
+import { APIURL, TENANTID } from '../config';
 
 type TrackedItem = Item & {
   itemID?: number;
@@ -21,7 +21,7 @@ const InventoryScreen: React.FC = () => {
   const [deletedItemIds, setDeletedItemIds] = useState<number[]>([]);
 
   const headers = {
-    'X-Tenant-ID': 'test_schema3',
+    'X-Tenant-ID': TENANTID,
     'Content-Type': 'application/json',
   };
 

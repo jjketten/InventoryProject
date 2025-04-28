@@ -10,7 +10,7 @@ import GenericTable from '@/components/GenericTable';
 import { ColumnConfig } from '@/components/ColumnConfig';
 import { DatePickerModal, TimePickerModal } from 'react-native-paper-dates';
 import { format, isValid, parse, parseISO } from 'date-fns';
-import { APIURL } from '../config';
+import { APIURL, TENANTID } from '../config';
 import CameraModal from '@/components/CameraModal';
 import { PurchaseDTO } from '@/types/PurchaseDTO';
 import { PurchaseItemDTO } from '@/types/PurchaseItemDTO';
@@ -45,7 +45,7 @@ export default function PurchaseDetailScreen() {
   const [tempReminderDate, setTempReminderDate] = useState<Date | null>(null);
   const [reminderTargetIndex, setReminderTargetIndex] = useState<number | null>(null);
 
-  const headers = { 'X-Tenant-ID': 'test_schema3' };
+  const headers = { 'X-Tenant-ID': TENANTID };
 
   useEffect(() => {
     if (!isNew) {
@@ -80,6 +80,23 @@ export default function PurchaseDetailScreen() {
         },
       ],
     }));
+    setReminders(prev => (
+      [...prev,{
+        itemID: null,
+        itemName: undefined,
+        itemBrand: undefined,
+        itemUnit: "?",
+        itemAmount: 0,
+        purchaseID: null,
+        // date: (parse(purchase.date, 'yyyy-MM-dd', new Date())).toISOString(),
+        purchaseDate: "?",
+        purchaseStore: "?",
+        purchaseTotalCost: 0,
+        dateTime : "?",
+        description: "",
+        completed: false,
+      }]
+    ));
   }
 
   function handleDeleteRow(index: number) {
@@ -124,7 +141,17 @@ export default function PurchaseDetailScreen() {
       };
       return { ...prev, items };
     });
-    setReminders(prev => [...prev, newReminder]);
+    // setReminders(prev => [...prev, newReminder]);
+    setReminders(prev => {
+      // const rmdrs = [...prev]
+      // // const cur = rmdrs[index];
+      // rmdrs[index] = newReminder;
+      // return(rmdrs)
+      // // const updated = [...purchase.items];
+      // // updated[index] = updatedItem;
+      // // setPurchase(prev => ({ ...prev, items: updated }));
+      return(prev.with(index, newReminder))
+    });
     setReminderModalOpen(false);
     setTimeModalOpen(false);
     setReminderTargetIndex(null);

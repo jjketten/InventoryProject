@@ -1,7 +1,7 @@
 import { Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import { Reminder as ReminderDTO } from '../../types/reminder'; // Adjust path if needed
-import { APIURL } from '../config';
+import { APIURL, TENANTID } from '../config';
 import { SchedulableTriggerInputTypes } from 'expo-notifications';
 
 let pollingInterval: ReturnType<typeof setInterval> | null = null;

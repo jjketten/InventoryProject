@@ -4,7 +4,7 @@ import { Button, useTheme } from 'react-native-paper';
 import { Reminder } from '../../types/reminder';
 import GenericTable from '../../components/GenericTable';
 import { ColumnConfig } from '../../components/ColumnConfig';
-import { APIURL } from '../config';
+import { APIURL, TENANTID } from '../config';
 import { useFocusEffect } from '@react-navigation/native';
 
 const ReminderScreen: React.FC = () => {
@@ -13,7 +13,7 @@ const ReminderScreen: React.FC = () => {
   const [showCompleted, setShowCompleted] = useState(false);
 
   const headers = {
-    'X-Tenant-ID': 'test_schema3',
+    'X-Tenant-ID': TENANTID,
     'Content-Type': 'application/json',
   };
 

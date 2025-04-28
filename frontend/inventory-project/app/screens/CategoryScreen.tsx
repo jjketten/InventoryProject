@@ -1,10 +1,15 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, FlatList, Button, StyleSheet } from 'react-native';
+import React, { useEffect, useState, useCallback } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  FlatList,
+  StyleSheet
+} from 'react-native';
 import Autocomplete from 'react-native-autocomplete-input';
 import { useTheme, IconButton } from 'react-native-paper';
 import { Item } from '../../types/item';
 import { useFocusEffect } from '@react-navigation/native';
-import { useCallback } from 'react';
 import { CategoryUnitTotalDTO } from '@/types/CategoryUnitTotalDTO';
 import { APIURL } from '../config';
 
@@ -23,11 +28,9 @@ const CategoryScreen: React.FC = () => {
   const { colors } = useTheme();
   const [categories, setCategories] = useState<Category[]>([]);
   const [items, setItems] = useState<Item[]>([]);
-  const [query, setQuery] = useState('');
-  const [filteredItems, setFilteredItems] = useState<Item[]>([]);
-  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
+  const [queries, setQueries] = useState<Record<number, string>>({});
+  const [filteredItemsByCategory, setFilteredItemsByCategory] = useState<Record<number, Item[]>>({});
   const [totalsPerCategory, setTotalsPerCategory] = useState<CategoryTotal[]>([]);
-  
 
   const headers = {
     'X-Tenant-ID': 'test_schema3',
@@ -36,7 +39,6 @@ const CategoryScreen: React.FC = () => {
 
   useFocusEffect(
     useCallback(() => {
-        // refetch on focus
       fetchCategories();
       fetchItems();
       fetchTotals();
@@ -49,54 +51,46 @@ const CategoryScreen: React.FC = () => {
     fetchTotals();
   }, []);
 
-  const safeFilteredItems = filteredItems.filter(item => item.itemID !== undefined);
-
   const fetchCategories = async () => {
-    const res = await fetch(APIURL+'/categories', { headers });
+    const res = await fetch(APIURL + '/categories', { headers });
     const data = await res.json();
     setCategories(data);
   };
 
   const fetchItems = async () => {
-    const res = await fetch(APIURL+'/items', { headers });
+    const res = await fetch(APIURL + '/items', { headers });
     const data = await res.json();
     setItems(data);
   };
 
-  // const fetchTotals = async (categoryIds : number[]) => {
-  //   // categoryIds.forEach((id) => {
-  //   //   const res = await fetch(`${APIURL}/categories/${categoryId}/totals`)
-  //   // }
-  //   // )
-  //   var arr = []
-  //   for await (const res of categoryIds.map( id => {
-  //     categoryID:id;
-  //     totals: fetch(`${APIURL}/categories/${id}/totals`)
-  //   })) {
-  //     //???
-  //     arr.push(res)
-  //   }
-  // }
-
   const fetchTotals = async () => {
-    const res = await fetch(APIURL+'/categories/totals', { headers });
+    const res = await fetch(APIURL + '/categories/totals', { headers });
     const totals: CategoryTotal[] = await res.json();
     setTotalsPerCategory(totals);
-  }
+  };
 
-  const handleQueryChange = (text: string) => {
-    setQuery(text);
-    setFilteredItems(items.filter(item => item.name.toLowerCase().includes(text.toLowerCase())));
+  const handleQueryChange = (text: string, categoryID: number) => {
+    setQueries(prev => ({ ...prev, [categoryID]: text }));
+
+    const filtered = items.filter(item =>
+      item.name.toLowerCase().includes(text.toLowerCase())
+    );
+
+    setFilteredItemsByCategory(prev => ({
+      ...prev,
+      [categoryID]: filtered
+    }));
   };
 
   const handleAddItem = async (itemId: number, categoryId: number) => {
     const url = `${APIURL}/categories/${categoryId}/items/${itemId}`;
     await fetch(url, { method: 'POST', headers });
-    fetchCategories(); // refresh
-    setQuery('');
-    setFilteredItems([]);
-    // fetchCategories();
+    fetchCategories(); // Refresh list
     fetchItems();
+
+    // Clear query and filteredItems for this category
+    setQueries(prev => ({ ...prev, [categoryId]: '' }));
+    setFilteredItemsByCategory(prev => ({ ...prev, [categoryId]: [] }));
   };
 
   const handleRenameCategory = async (categoryId: number, newName: string) => {
@@ -130,50 +124,51 @@ const CategoryScreen: React.FC = () => {
               onChangeText={(text) => handleRenameCategory(category.categoryID, text)}
             />
             {totalsPerCategory
-              .filter((item) => item.categoryID === category.categoryID)
-              .flatMap((item) =>
+              .filter(item => item.categoryID === category.categoryID)
+              .flatMap(item =>
                 item.totals.map((t, i) => (
                   <Text key={`${item.categoryID}-${t.unit}-${i}`}>
-                    {t.unit}: {t.totalAmount}
+                    {t.unit}: {t.totalAmount.toFixed(2)}
                   </Text>
-                )))
-            }
+                ))
+              )}
             <IconButton icon="delete" onPress={() => handleDeleteCategory(category.categoryID)} />
           </View>
 
           {items
             .filter((item) => item.categories?.includes(category.name))
             .map((item) => (
-                <Text style={styles.itemText} key={item.itemID}>
+              <Text style={styles.itemText} key={item.itemID}>
                 {item.name}
-                </Text>
-          ))}
+              </Text>
+            ))}
 
           <Autocomplete
-              data={query.trim() === '' ? [] : safeFilteredItems}
-              defaultValue={query}
-              onChangeText={handleQueryChange}
-              placeholder="Add item by name"
-              flatListProps={{
+            data={
+              (queries[category.categoryID]?.trim() ?? '') === ''
+                ? []
+                : (filteredItemsByCategory[category.categoryID] || []).filter(item => item.itemID !== undefined)
+            }
+            defaultValue={queries[category.categoryID] || ''}
+            onChangeText={(text) => handleQueryChange(text, category.categoryID)}
+            placeholder="Add item by name"
+            flatListProps={{
               keyExtractor: (item) => (item?.itemID ?? '').toString(),
               renderItem: ({ item }) => (
-              <Text
+                <Text
                   style={styles.suggestion}
                   onPress={() => {
-                  if (item?.itemID != null && category.categoryID != null) {
+                    if (item?.itemID != null && category.categoryID != null) {
                       handleAddItem(item.itemID, category.categoryID);
-                      setQuery('');
-                      setFilteredItems([]);
-                  }
+                    }
                   }}
-              >
+                >
                   {item?.name ?? 'Unnamed'}
-              </Text>
+                </Text>
               ),
-          }}
-          inputContainerStyle={styles.autoInput}
+            }}
+            inputContainerStyle={styles.autoInput}
           />
-
         </View>
       )}
     />
