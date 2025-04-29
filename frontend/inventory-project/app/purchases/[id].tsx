@@ -17,6 +17,8 @@ import { PurchaseItemDTO } from '@/types/PurchaseItemDTO';
 import { Reminder as ReminderDTO } from '@/types/reminder'; // Make sure you have ReminderDTO imported
 import { UnstractItem } from '@/types/UnstractResult';
 import { PDFDocument as PDFDocumentWeb } from 'pdf-lib';
+import { Dialog, Portal, Checkbox } from 'react-native-paper';
+
 interface ExtendedPurchaseItemDTO extends PurchaseItemDTO {
   reminderDateTime?: string;
   reminderDescription?: string;
@@ -44,6 +46,10 @@ export default function PurchaseDetailScreen() {
   const [timeModalOpen, setTimeModalOpen] = useState(false);
   const [tempReminderDate, setTempReminderDate] = useState<Date | null>(null);
   const [reminderTargetIndex, setReminderTargetIndex] = useState<number | null>(null);
+  const [totalCostText, setTotalCostText] = useState("");
+  const [deleteItemsToo, setDeleteItemsToo] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
 
   const headers = { 'X-Tenant-ID': TENANTID };
 
@@ -156,6 +162,44 @@ export default function PurchaseDetailScreen() {
     setTimeModalOpen(false);
     setReminderTargetIndex(null);
   }
+
+  async function handleDeleteConfirmed() {
+    try {
+      if (!purchase.purchaseID) {
+        throw new Error('Invalid purchase ID');
+      }
+  
+      //delete the purchase
+      await fetch(`${APIURL}/purchases/${purchase.purchaseID}`, {
+        method: 'DELETE',
+        headers,
+      });
+  
+      if (deleteItemsToo) {
+        //delete associated items
+        for (const item of purchase.items) {
+          if (item.itemID) {
+            await fetch(`${APIURL}/items/${item.itemID}`, {
+              method: 'DELETE',
+              headers,
+            });
+          }
+        }
+      }
+  
+      setDeleteDialogOpen(false);
+      router.back(); //navigate back to the purchase list
+    } catch (error) {
+      console.error('[handleDeleteConfirmed] Failed to delete:', error);
+      if (Platform.OS !== 'web') {
+        Alert.alert('Error', 'Failed to delete purchase.');
+      } else {
+        window.alert('Failed to delete purchase.');
+      }
+      setDeleteDialogOpen(false);
+    }
+  }
+  
 
   async function pickDocument(): Promise<string | undefined> {
     try {
@@ -358,10 +402,13 @@ export default function PurchaseDetailScreen() {
     const itemMap = new Map<number, PurchaseItemDTO>();
   
     for (const item of purchase.items) {
-      if (item.itemID == null) continue; // skip if no ID
-  
-      if (itemMap.has(item.itemID)) {
-        const existing = itemMap.get(item.itemID)!;
+      const existing = itemMap.get(item.itemID)!
+      console.log("[creatCleanPurchase] itemid:" + JSON.stringify(item.itemID))
+      
+
+      
+      if (itemMap.has(item.itemID) && !((item.itemID == null || item.itemID == 0 || item.itemID == undefined ))) {
+        // if (item.itemID == null || item.itemID == 0 || item.itemID == undefined ) continue; // skip if no ID
         
         //check if unit matches
         if (existing.unit !== item.unit) {
@@ -380,7 +427,7 @@ export default function PurchaseDetailScreen() {
       } else {
         // Add a clean copy
         itemMap.set(item.itemID, {
-          itemID: item.itemID,
+          itemID: ((item.itemID && item.itemID > 0) ? item.itemID : null),
           name: item.name,
           brand: item.brand,
           categories: item.categories,
@@ -483,9 +530,25 @@ export default function PurchaseDetailScreen() {
 
       <TextInput
         label="Total Cost"
-        value={String(purchase.totalCost)}
+        // value={String(purchase.totalCost)}
+        value={totalCostText}
         keyboardType="decimal-pad"
-        onChangeText={c => setPurchase(p => ({ ...p, totalCost: parseFloat(c) || 0 }))}
+        // onChangeText={c => setPurchase(p => ({ ...p, totalCost: parseFloat(c) || 0 }))}
+        onChangeText= {(t) => {
+          // Just update local text immediately, even if partial
+            if (/^\d*\.?\d*$/.test(t)) {
+              setTotalCostText(t);
+            }
+          }
+        }
+        onBlur={() => setPurchase((p) => {
+          const n = parseFloat(totalCostText);
+          if (isNaN(n)){return p} 
+          else{
+            setTotalCostText(n.toFixed(2))
+            return ( { ...p, totalCost: n || 0 })
+          }
+        })}
         mode="outlined"
         editable={isNew}
         style={styles.input}
@@ -561,6 +624,39 @@ export default function PurchaseDetailScreen() {
           Submit Purchase
         </Button>
       )}
+
+    {!isNew && (
+      <Button
+        mode="contained-tonal"
+        style={{ marginTop: 24, backgroundColor: colors.error }}
+        onPress={() => setDeleteDialogOpen(true)}
+      >
+        Delete Purchase
+      </Button>
+    )}
+
+    <Portal>
+      <Dialog visible={deleteDialogOpen} onDismiss={() => setDeleteDialogOpen(false)}>
+        <Dialog.Title>Delete Purchase</Dialog.Title>
+        <Dialog.Content>
+          <Text>Are you sure you want to delete this purchase?</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 16 }}>
+            <Checkbox
+              status={deleteItemsToo ? 'checked' : 'unchecked'}
+              onPress={() => setDeleteItemsToo(!deleteItemsToo)}
+            />
+            <Text>Also delete associated items from inventory</Text>
+          </View>
+        </Dialog.Content>
+        <Dialog.Actions>
+          <Button onPress={() => setDeleteDialogOpen(false)}>Cancel</Button>
+          <Button onPress={handleDeleteConfirmed}>Confirm</Button>
+        </Dialog.Actions>
+      </Dialog>
+    </Portal>
+
+
+
 
       <CameraModal
         visible={cameraOpen}

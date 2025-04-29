@@ -97,9 +97,11 @@ const CategoryScreen: React.FC = () => {
     await fetch(`${APIURL}/categories/${categoryId}/rename`, {
       method: 'PUT',
       headers,
-      body: JSON.stringify(newName),
+      body: (newName).trim(),
     });
     fetchCategories();
+    fetchItems();
+    fetchTotals();
   };
 
   const handleDeleteCategory = async (categoryId: number) => {
@@ -116,7 +118,7 @@ const CategoryScreen: React.FC = () => {
       data={categories}
       keyExtractor={(cat) => cat.categoryID.toString()}
       renderItem={({ item: category }) => (
-        <View style={[styles.categoryBox, { backgroundColor: colors.onSecondary }]}>
+        <View style={[styles.categoryBox, { backgroundColor: colors.onBackground }]}>
           <View style={styles.categoryHeader}>
             <TextInput
               style={styles.renameInput}

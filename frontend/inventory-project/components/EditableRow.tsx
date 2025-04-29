@@ -12,7 +12,8 @@ interface EditableRowProps<T> {
   onEdit: (index: number, updated: T) => void;
   onEditToggle?: (index: number, field: keyof T, currentValue: boolean) => void;
   onDelete?: (index: number) => void;
-  isNew?: boolean;
+  // isNew?: boolean;
+  highlightStartIndex?: number,
   onAddReminder?: (index: number) => void;
 }
 
@@ -23,9 +24,12 @@ export default function EditableRow<T extends object>({
   onEdit,
   onEditToggle,
   onDelete,
-  isNew = false,
+  // isNew = false,
+  highlightStartIndex = 999,
   onAddReminder,
 }: EditableRowProps<T>) {
+  // const realIndex = columns.indexOf()
+  const isNew = (index >= highlightStartIndex)
   return (
     <DataTable.Row style={[styles.row, isNew && styles.newRow]}>
       {columns.map((col) => {
@@ -45,7 +49,15 @@ export default function EditableRow<T extends object>({
         //   reminderDesc = "?";
         // }
 
-        
+        // custom
+        if(col.render) return (
+          <DataTable.Cell
+            key={col.key as string}
+            style={[styles.cell, { flex: col.width ?? 40 }]}
+          >
+            {col.render(rawVal, item, index)}
+          </DataTable.Cell>
+        )
 
         // 2) chip editor
         if (col.key === 'categories' && col.editable) {

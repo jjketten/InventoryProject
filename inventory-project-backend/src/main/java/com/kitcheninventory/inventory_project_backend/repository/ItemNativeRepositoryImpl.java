@@ -257,4 +257,87 @@ public class ItemNativeRepositoryImpl implements ItemNativeRepository {
         return Optional.of(dto);
     }
 
+    @Override
+    @SuppressWarnings("unchecked")
+    //Returns first item with matching name
+    public Optional<ItemDTO> findItemByName(String name) {
+        String itemQuery = """
+            SELECT item_id, name, brand, unit, amount
+            FROM item
+            WHERE name = :name
+            LIMIT 1
+        """;
+
+        List<Object[]> items = em.createNativeQuery(itemQuery)
+            .setParameter("name", name)
+            .getResultList();
+
+        if (items.isEmpty()) {
+            return Optional.empty();
+        }
+
+        Object[] row = items.get(0);
+        Long id = ((Number) row[0]).longValue();
+        String itemName = (String) row[1];
+        String brand = (String) row[2];
+        String unit = (String) row[3];
+        float amount = ((Number) row[4]).floatValue();
+
+        // Fetch categories for the item
+        String categoryQuery = """
+            SELECT c.name
+            FROM category c
+            JOIN item_category ic ON c.category_id = ic.category_id
+            WHERE ic.item_id = :itemId
+        """;
+
+        List<String> categories = em.createNativeQuery(categoryQuery)
+            .setParameter("itemId", id)
+            .getResultList();
+
+        ItemDTO dto = new ItemDTO(id, itemName, brand, unit, amount, categories);
+        return Optional.of(dto);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    //Same as above but returns all matches
+    public List<ItemDTO> findItemsByName(String name) {
+        String itemQuery = """
+            SELECT item_id, name, brand, unit, amount
+            FROM item
+            WHERE name = :name
+        """;
+
+        List<Object[]> rows = em.createNativeQuery(itemQuery)
+            .setParameter("name", name)
+            .getResultList();
+
+        List<ItemDTO> result = new ArrayList<>();
+
+        for (Object[] row : rows) {
+            Long id = ((Number) row[0]).longValue();
+            String itemName = (String) row[1];
+            String brand = (String) row[2];
+            String unit = (String) row[3];
+            float amount = ((Number) row[4]).floatValue();
+
+            // Fetch categories
+            List<String> categories = em.createNativeQuery("""
+                SELECT c.name
+                FROM category c
+                JOIN item_category ic ON c.category_id = ic.category_id
+                WHERE ic.item_id = :itemId
+            """)
+            .setParameter("itemId", id)
+            .getResultList();
+
+            result.add(new ItemDTO(id, itemName, brand, unit, amount, categories));
+        }
+
+        return result;
+    }
+
+
+
 }

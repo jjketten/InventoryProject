@@ -24,4 +24,7 @@ public interface ItemNativeRepository {
 
     Optional<ItemDTO> findItemById(Long itemId);
 
+    Optional<ItemDTO> findItemByName(String name);
+    
+    List<ItemDTO> findItemsByName(String name);
 }

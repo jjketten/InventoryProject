@@ -104,20 +104,25 @@ export default function RecipeDetailScreen() {
   };
 
   const handleDelete = async () => {
-    Alert.alert('Delete Recipe', 'Are you sure?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Delete',
-        style: 'destructive',
-        onPress: async () => {
-          await fetch(`${APIURL}/recipes/${recipe.recipeID}`, {
-            method: 'DELETE',
-            headers
-          });
-          router.back();
-        },
-      },
-    ]);
+    // Alert.alert('Delete Recipe', 'Are you sure?', [
+    //   { text: 'Cancel', style: 'cancel' },
+    //   {
+    //     text: 'Delete',
+    //     style: 'destructive',
+    //     onPress: async () => {
+    //       await fetch(`${APIURL}/recipes/${recipe.recipeID}`, {
+    //         method: 'DELETE',
+    //         headers
+    //       });
+    //       router.back();
+    //     },
+    //   },
+    // ]);
+    await fetch(`${APIURL}/recipes/${recipe.recipeID}`, {
+              method: 'DELETE',
+              headers
+            });
+            router.back();
   };
 
   const handleSave = async () => {
@@ -181,7 +186,9 @@ export default function RecipeDetailScreen() {
       editable: true,
       inputType: 'text',
       width: 40,
-      render: (val, row, index) =>
+      render: (val, row, i) =>{
+        const index = recipe.items.indexOf(row);
+        return(
         row.isNew ? (
           <Autocomplete
             style={{ backgroundColor: colors.onBackground }}
@@ -203,7 +210,7 @@ export default function RecipeDetailScreen() {
           />
         ) : (
           <Text style={{ color: colors.onSurface }}>{val}</Text>
-        ),
+        ))}
     },
     { key: 'unit', label: 'Unit', editable: true, inputType: 'text' },
     { key: 'amount', label: 'Amount', editable: true, inputType: 'number' },
@@ -216,7 +223,8 @@ export default function RecipeDetailScreen() {
         row.isNew ? (
           <Autocomplete style={{ backgroundColor: colors.onBackground }}
             data={categoriesRef.filter((c) => c.name.toLowerCase().includes(val?.toLowerCase() || ''))}
-            defaultValue={val}
+            // defaultValue={val}
+            value={val}
             onChangeText={(text) => updateItem(index as number, { ...row, categoryName: text })}
             flatListProps={{
               keyExtractor: (_, i) => i.toString(),

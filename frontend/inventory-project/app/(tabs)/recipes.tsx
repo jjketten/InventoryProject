@@ -36,8 +36,9 @@ const RecipeScreen = () => {
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: colors.background }}>
-      <View style={{ flex: 1, padding: 16 }}>
+      <View style={{ flex: 1, padding: 16}}>
         <FlatList
+          style={{backgroundColor: colors.secondary}}
           data={recipes}
           keyExtractor={(item, index) => item.recipeID?.toString() ?? `recipe-${index}`}
           renderItem={({ item }) => (

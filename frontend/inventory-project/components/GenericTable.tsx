@@ -46,19 +46,24 @@ function GenericTable<T extends object>({
       </DataTable.Header>
 
       {/* Rows */}
-      {data.map((row, index) => (
-        <EditableRow
-          key={index}
-          item={row}
-          index={index}
-          columns={columns}
-          onEdit={onEdit ?? (()=>{})}
-          onDelete={onDelete}
-          onEditToggle={onEditToggle}
-          isNew={index >= highlightStartIndex}
-          onAddReminder={onAddReminder}
-        />
-      ))}
+      {data.map((row, index) => {
+        const actualindex = data.indexOf(row)
+        return(
+          <EditableRow
+            key={actualindex}
+            // key={(row as any).itemID ?? index}
+            item={row}
+            index={actualindex}
+            columns={columns}
+            onEdit={onEdit ?? (()=>{})}
+            onDelete={onDelete}
+            onEditToggle={onEditToggle}
+            // isNew={index >= highlightStartIndex}
+            highlightStartIndex={highlightStartIndex}
+            onAddReminder={onAddReminder}
+          />
+          )}
+      )}
     </DataTable>
   );
 }

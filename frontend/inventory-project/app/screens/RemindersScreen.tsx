@@ -82,7 +82,7 @@ const ReminderScreen: React.FC = () => {
     {
       key: 'completed',
       label: 'Done',
-      render: (value) => (value ? '✔️' : ''),
+      // render: (value) => (value ? '✔️' : ''),
     },
     // {
     //   key: 'actions',
